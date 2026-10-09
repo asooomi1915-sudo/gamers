@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>نبيه | التدريب الذهني والألعاب</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { cairo: ['Cairo', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#f0fdfa', 100: '#ccfbf1', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 900: '#134e4a' },
+                        accent: { 400: '#6366f1', 500: '#4f46e5', 600: '#4338ca' }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-soft': 'pulseSoft 3s ease-in-out infinite alternate',
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                        'float-up': 'floatUp 1s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-6px)' } },
+                        pulseSoft: { 'from': { filter: 'drop-shadow(0 0 10px rgba(20,184,166,0.1))' }, 'to': { filter: 'drop-shadow(0 0 25px rgba(20,184,166,0.4))' } },
+                        fadeIn: { 'from': { opacity: '0', transform: 'translateY(-5px)' }, 'to': { opacity: '1', transform: 'translateY(0)' } },
+                        floatUp: { '0%': { opacity: '1', transform: 'translateY(0) scale(1)' }, '100%': { opacity: '0', transform: 'translateY(-60px) scale(1.5)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; color: #1e293b; overflow-x: hidden; user-select: none; touch-action: manipulation; }
+        
+        .unit-card { border-radius: 1.25rem; padding: 1.5rem; transition: all 0.3s ease; cursor: pointer; position: relative; border: 1px solid #e2e8f0; background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); overflow: hidden; }
+        .unit-card.interactive:not(.expanded):hover { transform: translateY(-3px); opacity: 1 !important; box-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.08); border-color: #cbd5e1; }
+        .unit-card.expanded { opacity: 1 !important; border-color: #14b8a6; box-shadow: 0 10px 30px -5px rgba(20, 184, 166, 0.15); cursor: default; }
+        
+        .lobe-path { transition: all 0.4s ease; cursor: pointer; fill: #d1b8b0; stroke: rgba(80, 30, 30, 0.2); stroke-width: 1.5; stroke-linejoin: round; }
+        .lobe-path:hover, .lobe-path.active { filter: brightness(1.1) drop-shadow(0 0 15px rgba(255,255,255,0.4)); z-index: 10; transform: scale(1.02); }
+        .brain-fold { stroke: rgba(80, 30, 30, 0.3); stroke-width: 1.5; stroke-linecap: round; fill: none; pointer-events: none; transition: all 0.4s ease; }
+        .lobe-path:hover .brain-fold { stroke: rgba(255,255,255,0.6); }
+
+        #dynamic-brain-wrapper { transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-origin: center; }
+
+        .screen { display: none; opacity: 0; transition: opacity 0.3s ease-in-out; height: 100vh; width: 100vw; flex-direction: column; }
+        .screen.active { display: flex; opacity: 1; }
+        .progress-bar-fill { transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Game Elements */
+        .keypad-btn { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0.75rem; color: #334155; font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: all 0.1s; cursor: pointer; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.05); }
+        .keypad-btn:active { transform: scale(0.95); background: #e2e8f0; box-shadow: none; }
+        .keypad-btn.flash { background: #4f46e5; color: white; border-color: #4338ca; box-shadow: 0 0 15px rgba(79,70,229,0.5); transform: scale(1.02); }
+        .matrix-cell { transition: all 0.2s; background: #e2e8f0; border-radius: 0.5rem; cursor: pointer; }
+        .matrix-cell.flash { background: #4f46e5; box-shadow: 0 0 15px rgba(79,70,229,0.5); }
+        .matrix-cell.correct { background: #10b981; }
+        .matrix-cell.wrong { background: #f43f5e; animation: shake 0.3s; }
+        .schulte-cell { transition: all 0.1s; background: #fff; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-weight: 700; color: #334155; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.5rem; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.05); }
+        .schulte-cell:active { transform: scale(0.95); background: #f1f5f9; box-shadow: none; }
+        .schulte-cell.found { background: #10b981; color: white; border-color: #059669; opacity: 0.8; pointer-events: none; }
+        .schulte-cell.wrong { background: #f43f5e; color: white; border-color: #e11d48; animation: shake 0.3s; }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        
+        .bg-shapes { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; opacity: 0.4; background: radial-gradient(circle at 10% 20%, rgba(20, 184, 166, 0.05) 0%, transparent 20%), radial-gradient(circle at 90% 80%, rgba(79, 70, 229, 0.05) 0%, transparent 20%); }
+        .game-target { position: absolute; transform: translate(-50%, -50%); transition: transform 0.1s; }
+        .game-target:active { transform: translate(-50%, -50%) scale(0.85); }
+    </style>
+</head>
+<body class="relative">
+
+    <div class="bg-shapes"></div>
+
+    <!-- ==================== LOGIN SCREEN ==================== -->
+    <div id="screen-login" class="screen active relative z-50 bg-slate-900/60 backdrop-blur-md items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] shadow-2xl p-8 max-w-md w-full border border-slate-100 transform transition-transform duration-500">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl shadow-lg mb-4 transform rotate-3">
+                    <i class="fa-solid fa-gamepad"></i>
+                </div>
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight">التدريب الذهني</h1>
+                <p class="text-sm text-slate-500 font-bold mt-1">أدخل رقم جوال ولي الأمر للبدء</p>
+            </div>
+            
+            <form onsubmit="app.login(event)" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5"><i class="fa-solid fa-phone text-slate-400 ml-1"></i> رقم الجوال المسجل</label>
+                    <input type="tel" id="loginPhone" required dir="ltr" class="w-full bg-slate-50 border border-slate-200 px-4 py-3.5 rounded-xl text-sm font-bold text-right outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition" placeholder="05XXXXXXXX">
+                </div>
+                <button type="submit" id="loginBtn" class="w-full py-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-black text-sm shadow-lg shadow-brand-500/30 transition flex items-center justify-center gap-2 mt-4">
+                    دخول المنصة <i class="fa-solid fa-arrow-left mt-0.5"></i>
+                </button>
+            </form>
+            <div class="mt-4 text-center">
+                <p class="text-[10px] text-slate-400 font-bold">بوابة الألعاب مربوطة حياً بقاعدة بيانات نبيه لتحليل الإنجاز.</p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================== MAIN DASHBOARD ==================== -->
+    <div id="screen-dashboard" class="screen relative z-10 overflow-y-auto">
+        
+        <header class="p-3 md:p-4 flex flex-col gap-3 sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between max-w-7xl mx-auto w-full">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center p-0.5">
+                        <img src="https://cdn3d.iconscout.com/3d/premium/thumb/boy-avatar-6299533-5187871.png" alt="Avatar" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <h2 class="text-sm md:text-lg font-bold text-slate-800 flex items-center gap-2">
+                            البطل <span id="student-name-display">...</span> <span id="header-title-badge" class="text-[10px] md:text-xs bg-brand-50 text-brand-700 border border-brand-100 px-2 py-0.5 rounded-md whitespace-nowrap">شبل مبتدئ</span>
+                        </h2>
+                        <div class="flex items-center gap-1.5 mt-0.5">
+                            <span class="text-[10px] md:text-xs font-bold text-slate-500 flex items-center gap-1">
+                                <i class="fa-solid fa-bolt text-amber-400"></i> <span id="ui-total-energy" class="text-slate-700">0</span> نقطة طاقة
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center bg-slate-50 px-4 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 transition cursor-pointer shrink-0" onclick="app.showLevelModal()">
+                    <div class="text-[9px] text-slate-400 font-bold uppercase"><i class="fa-solid fa-ranking-star"></i> المستوى العقلي</div>
+                    <div id="ui-level-badge" class="text-sm md:text-xl font-black text-brand-600 mt-0.5">LVL 1</div>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto w-full flex items-center gap-3 relative cursor-pointer" onclick="app.showLevelModal()">
+                <span class="text-[10px] font-bold text-slate-400 w-5 text-center" id="current-lvl-text">L1</span>
+                <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden relative border border-slate-200/50">
+                    <div id="xp-bar" class="absolute top-0 right-0 h-full bg-brand-500 progress-bar-fill" style="width: 0%;"></div>
+                </div>
+                <span class="text-[10px] font-bold text-brand-600 w-5 text-center" id="next-lvl-text">L2</span>
+            </div>
+        </header>
+
+        <main class="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 flex flex-col pt-6 pb-20">
+            
+            <div class="flex flex-col md:flex-row w-full gap-4 md:gap-6 mb-8">
+                
+                <div class="flex-1 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden flex flex-col justify-center">
+                    <div id="status-bg-pulse" class="absolute inset-0 bg-rose-50/30 animate-pulse pointer-events-none"></div>
+                    <div class="relative z-10 flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-3">
+                            <div id="battery-icon" class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center border border-rose-100"><i class="fa-solid fa-battery-quarter"></i></div>
+                            <div>
+                                <span class="block text-base font-bold text-slate-800">شحن الدماغ اليومي</span>
+                                <span class="block text-[10px] text-slate-500">أكمل التمارين للحفاظ على كفاءتك</span>
+                            </div>
+                        </div>
+                        <span id="brain-status-text" class="text-[10px] font-bold text-rose-600 bg-rose-50 px-3 py-1 rounded-md border border-rose-100">يحتاج شحن</span>
+                    </div>
+                    <div class="relative z-10 h-3 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200 mt-2">
+                        <div id="brain-charge-bar" class="h-full bg-gradient-to-l from-rose-400 to-rose-500 progress-bar-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <div class="w-full md:w-[35%] bg-white p-4 rounded-2xl shadow-sm border border-slate-200 relative flex flex-col items-center justify-center min-h-[160px] overflow-hidden">
+                    <div id="main-brain-aura" class="absolute inset-0 bg-emerald-50 rounded-2xl blur-[30px] opacity-50 animate-pulse-soft pointer-events-none"></div>
+                    
+                    <div class="text-center mb-2 z-10">
+                        <h4 class="text-xs font-black text-slate-700">دماغك ينمو ويتطور <i class="fa-solid fa-arrow-trend-up text-emerald-500"></i></h4>
+                        <p class="text-[9px] text-slate-400 mt-0.5">اضغط على الدماغ لاكتساب نقطة نمو</p>
+                    </div>
+
+                    <div class="relative w-28 h-28 md:w-32 md:h-32 flex items-center justify-center mb-2 cursor-pointer" onclick="app.growBrain()">
+                        <div id="floating-points-container" class="absolute inset-0 pointer-events-none z-50"></div>
+                        <div class="relative w-full h-full flex items-center justify-center z-20">
+                            <div id="dynamic-brain-wrapper" class="w-full h-full flex items-center justify-center scale-50 relative">
+                                <svg viewBox="0 0 200 150" class="w-full h-full drop-shadow-md animate-float relative z-10">
+                                    <defs>
+                                        <linearGradient id="grad-front" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#b68982" /><stop offset="100%" stop-color="#9a6760" /></linearGradient>
+                                        <linearGradient id="grad-parietal" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ab7a74" /><stop offset="100%" stop-color="#8c5852" /></linearGradient>
+                                        <linearGradient id="grad-occipital" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#b07871" /><stop offset="100%" stop-color="#92544d" /></linearGradient>
+                                        <linearGradient id="grad-temporal" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ba8279" /><stop offset="100%" stop-color="#9e6057" /></linearGradient>
+                                    </defs>
+                                    <g class="lobe-path"><path d="M100 15 C 50 15 20 50 20 90 C 20 110 35 125 50 130 C 65 135 85 110 105 105 L 105 15 Z" fill="url(#grad-front)"/></g>
+                                    <g class="lobe-path"><path d="M105 15 C 150 15 170 40 180 75 C 185 95 160 115 140 115 C 120 115 105 105 105 105 L 105 15 Z" fill="url(#grad-parietal)"/></g>
+                                    <g class="lobe-path"><path d="M140 115 C 160 115 190 100 185 130 C 180 150 150 145 130 135 C 120 130 120 120 140 115 Z" fill="url(#grad-occipital)"/></g>
+                                    <g class="lobe-path"><path d="M 50 130 C 65 150 110 160 130 135 C 120 130 120 120 105 105 C 85 110 65 135 50 130 Z" fill="url(#grad-temporal)"/></g>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== UNITS GROUP PROGRESS & GRID ==================== -->
+            <div class="w-full mb-6">
+                <!-- Group Header & Progress -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm mb-5 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="w-full md:w-auto flex-1">
+                        <h3 class="text-lg md:text-xl font-bold text-slate-800"><i class="fa-solid fa-layer-group text-brand-500 ml-1"></i> مسار المعرفة (<span id="group-index-text">1</span>)</h3>
+                        <p class="text-[10px] md:text-xs text-slate-500 mt-1">أكمل 70% لفتح المجموعة التالية.</p>
+                        
+                        <div class="w-full mt-3">
+                            <div class="flex justify-between text-[10px] font-bold text-slate-600 mb-1.5">
+                                <span>إنجاز المجموعة الشامل:</span>
+                                <span id="group-progress-text" class="text-brand-600 font-black">0%</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden relative border border-slate-200/50">
+                                <div id="group-progress-bar" class="h-full bg-gradient-to-l from-brand-400 to-brand-600 transition-all duration-500 relative z-0" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2 shrink-0 w-full md:w-auto justify-end" dir="ltr">
+                        <button onclick="app.prevUnitPage()" id="btn-prev-page" class="px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 shadow-sm flex items-center justify-center text-slate-600 hover:bg-white hover:text-brand-600 transition text-xs font-bold disabled:opacity-40"><i class="fa-solid fa-chevron-left md:mr-1.5"></i> <span class="hidden md:inline">السابق</span></button>
+                        <button onclick="app.nextUnitPage()" id="btn-next-page" class="px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 shadow-sm flex items-center justify-center text-slate-600 hover:bg-white hover:text-brand-600 transition text-xs font-bold disabled:opacity-40"><span class="hidden md:inline">التالي</span> <i class="fa-solid fa-chevron-right md:ml-1.5"></i></button>
+                    </div>
+                </div>
+
+                <!-- Grid -->
+                <div id="units-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 w-full relative z-10 items-start">
+                    <div class="text-center py-10 bg-white rounded-2xl border border-slate-200 border-dashed col-span-1 md:col-span-2">
+                        <i class="fa-solid fa-spinner animate-spin text-3xl text-brand-500 mb-3"></i>
+                        <p class="text-sm font-bold text-slate-500">جاري استيراد الوحدات من الخوادم...</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ==================== OPEN UNIT CONFIRMATION MODAL ==================== -->
+    <div id="modal-confirm-open" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-xl transform scale-95 transition-transform" id="modal-confirm-content">
+            <div class="text-5xl text-brand-500 mb-4 animate-pulse-soft"><i class="fa-solid fa-cube"></i></div>
+            <h3 class="text-xl font-black text-slate-800 mb-2">مستوى جديد!</h3>
+            <p class="text-sm text-slate-500 mb-6">هل ترغب في فتح هذا المستوى واستكشاف التحديات التي بداخله؟</p>
+            <div class="flex gap-3">
+                <button onclick="app.closeConfirmModal()" class="flex-1 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm hover:bg-slate-200 transition">ليس الآن</button>
+                <button id="btn-confirm-open" class="flex-1 py-3 rounded-xl bg-brand-500 text-white font-bold text-sm hover:bg-brand-600 transition shadow-md">نعم، افتحه!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== LEVELS MAP MODAL ==================== -->
+    <div id="modal-level-info" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl relative overflow-hidden transform scale-95 transition-transform flex flex-col max-h-[85vh]" id="modal-level-content">
+            <button onclick="app.closeLevelModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center transition z-10"><i class="fa-solid fa-xmark"></i></button>
+            <div class="text-center mb-5 border-b border-slate-100 pb-5 pt-2">
+                <div class="text-3xl text-brand-500 mb-2"><i class="fa-solid fa-ranking-star"></i></div>
+                <h3 class="text-lg md:text-xl font-bold text-slate-800 mb-1">مسار العبقرية</h3>
+                <p id="level-modal-progress-text" class="text-xs text-slate-500 bg-slate-50 py-1.5 px-3 rounded-md inline-block border border-slate-200">متبقي طاقة للوصول</p>
+            </div>
+            <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="ranks-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== UNIVERSAL GAME HEADER ==================== -->
+    <div id="game-header" class="fixed top-0 left-0 w-full p-3 flex justify-between items-start z-40 hidden pointer-events-none">
+        <div class="bg-white/95 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-200 flex flex-col items-center pointer-events-auto shadow-sm min-w-[60px]" id="timer-container">
+            <span class="text-[8px] text-slate-400 font-bold uppercase tracking-widest">الوقت</span>
+            <div class="flex items-center gap-1">
+                <i class="fa-regular fa-clock text-rose-500 text-[10px]"></i>
+                <span id="global-timer" class="text-base font-black text-slate-800">15</span>
+            </div>
+        </div>
+        <div class="flex flex-col items-center pointer-events-auto max-w-[50%]">
+            <div id="active-game-title" class="bg-white/95 backdrop-blur px-4 py-1.5 rounded-full border border-slate-200 text-xs md:text-sm font-bold text-brand-700 shadow-sm text-center">اسم اللعبة</div>
+        </div>
+        <button onclick="app.showScreen('screen-dashboard')" class="w-8 h-8 rounded-full bg-white/95 backdrop-blur border border-slate-200 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 pointer-events-auto transition shadow-sm">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- ==================== GAMES SCREENS ==================== -->
+    
+    <!-- 1. REACTION -->
+    <div id="screen-game-reaction" class="screen relative z-20 bg-slate-900"><div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(white 1px, transparent 1px); background-size: 40px 40px;"></div><div id="reaction-area" class="flex-1 w-full h-full relative cursor-crosshair overflow-hidden"></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none flex items-center gap-2 z-30 whitespace-nowrap"><i class="fa-solid fa-bolt text-amber-500"></i><span class="text-xs text-slate-600 font-bold">الطاقة:</span><span id="reaction-score" class="text-sm font-black text-slate-800">0</span></div></div>
+    <!-- 2. MEMORY -->
+    <div id="screen-game-memory" class="screen relative z-20 flex-col items-center justify-center bg-slate-50 px-4"><div class="text-center mb-5 relative z-30 bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-200 w-full max-w-xs"><div class="text-slate-400 text-[10px] font-bold mb-1 uppercase tracking-widest"><i class="fa-solid fa-lock"></i> شفرة الخزنة</div><p id="memory-msg" class="text-xl font-black tracking-[0.4em] text-slate-700 h-8">***</p></div><div class="grid grid-cols-3 gap-2 md:gap-3 relative z-30 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm w-full max-w-xs aspect-square" id="memory-keypad"></div></div>
+    <!-- 3. FLEXIBILITY -->
+    <div id="screen-game-flex" class="screen relative z-20 flex-col items-center justify-between pb-8 pt-20 bg-slate-50"><div class="text-center w-full px-4 relative z-30"><div id="flex-rule-box" class="bg-white border border-emerald-300 rounded-full py-2 px-5 inline-block transition-all shadow-sm"><h2 id="flex-rule-text" class="text-sm md:text-base font-bold text-emerald-600"><i class="fa-solid fa-arrow-right-arrow-left"></i> طابق اللون</h2></div></div><div class="flex-1 w-full flex items-center justify-center relative z-20"><div id="flex-item" class="w-24 h-24 rounded-2xl shadow-sm flex items-center justify-center text-4xl transition-transform border-2 border-white"><i class="fa-solid fa-shapes text-white/60"></i></div></div><div class="w-full max-w-lg mx-auto flex justify-between px-4 gap-3 relative z-30"><button onclick="flexGame.handleSort('blue')" class="flex-1 h-24 rounded-2xl border-2 border-blue-400 bg-white flex flex-col items-center justify-center gap-1 hover:bg-blue-50 transition shadow-sm"><i class="fa-solid fa-door-open text-2xl text-blue-500"></i><span class="font-bold text-blue-600 text-xs">بوابة زرقاء</span></button><button onclick="flexGame.handleSort('red')" class="flex-1 h-24 rounded-2xl border-2 border-rose-400 bg-white flex flex-col items-center justify-center gap-1 hover:bg-rose-50 transition shadow-sm"><i class="fa-solid fa-door-open text-2xl text-rose-500"></i><span class="font-bold text-rose-600 text-xs">بوابة حمراء</span></button></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-star text-emerald-500"></i><span class="text-xs text-slate-500 font-bold">النقاط:</span><span id="flex-score" class="text-sm font-black text-slate-800">0</span></div></div>
+    <!-- 4. STROOP -->
+    <div id="screen-game-stroop" class="screen relative z-20 flex-col items-center justify-center bg-slate-50"><div class="text-center mb-8 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm max-w-[90%]"><p class="text-[10px] font-bold text-slate-400">القاعدة:</p><h3 class="text-base font-bold text-slate-700">اختر <span class="text-rose-500">لون الخط</span> وليس الكلمة!</h3></div><div class="flex-1 flex items-center justify-center w-full"><h1 id="stroop-word" class="text-5xl md:text-7xl font-black tracking-wider transition-all">أحمر</h1></div><div id="stroop-options" class="w-full max-w-lg mx-auto flex flex-wrap justify-center gap-2 px-4 pb-16"></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-bolt text-rose-500"></i><span class="text-xs text-slate-500 font-bold">الطاقة:</span><span id="stroop-score" class="text-sm font-black text-slate-800">0</span></div></div>
+    <!-- 5. MATRIX -->
+    <div id="screen-game-matrix" class="screen relative z-20 flex-col items-center justify-center bg-slate-50 px-4"><div class="text-center mb-5 relative z-30"><p id="matrix-msg" class="text-sm font-bold text-cyan-600 h-6">راقب المربعات المضيئة...</p></div><div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm w-full max-w-[260px] aspect-square flex items-center justify-center"><div id="matrix-grid" class="grid gap-1.5 w-full h-full"></div></div></div>
+    <!-- 6. MATH -->
+    <div id="screen-game-math" class="screen relative z-20 flex-col items-center justify-center bg-slate-50"><div class="text-center mb-6 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm"><h3 class="text-base font-bold text-slate-700">هل هذه المعادلة صحيحة؟</h3></div><div class="flex-1 flex items-center justify-center w-full px-4"><div class="bg-white border-2 border-indigo-200 rounded-2xl px-6 py-6 shadow-sm text-center transition-transform w-full max-w-xs" id="math-equation-box"><h1 id="math-equation" class="text-3xl font-black text-slate-800" dir="ltr">5 + 4 = 9</h1></div></div><div class="w-full max-w-md mx-auto flex justify-center gap-3 px-4 pb-16"><button onclick="mathGame.handleAnswer(true)" class="w-24 h-24 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white flex flex-col items-center justify-center gap-1 shadow-sm transition"><i class="fa-solid fa-check text-2xl"></i><span class="font-bold text-sm">صحيح</span></button><button onclick="mathGame.handleAnswer(false)" class="w-24 h-24 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white flex flex-col items-center justify-center gap-1 shadow-sm transition"><i class="fa-solid fa-xmark text-2xl"></i><span class="font-bold text-sm">خاطئ</span></button></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-calculator text-indigo-500"></i><span class="text-xs text-slate-500 font-bold">النقاط:</span><span id="math-score" class="text-sm font-black text-slate-800">0</span></div></div>
+    <!-- 7. VISUAL -->
+    <div id="screen-game-visual" class="screen relative z-20 flex-col items-center justify-center bg-slate-50 px-4"><div class="text-center mb-5 relative z-30 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm"><p class="text-sm font-bold text-amber-600">ابحث عن الشكل المختلف!</p></div><div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm mb-12 w-full max-w-[280px] aspect-square flex items-center justify-center"><div id="visual-grid" class="w-full h-full"></div></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-eye text-amber-500"></i><span class="text-xs text-slate-500 font-bold">النقاط:</span><span id="visual-score" class="text-sm font-black text-slate-800">0</span></div></div>
+    <!-- 8. SCHULTE -->
+    <div id="screen-game-schulte" class="screen relative z-20 flex-col items-center justify-center bg-slate-50 px-4"><div class="text-center mb-5 relative z-30 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm flex items-center justify-center gap-2 w-full max-w-[200px]"><p class="text-xs font-bold text-teal-600">التالي:</p><span id="schulte-target" class="text-base font-black text-slate-800 bg-slate-100 px-2 rounded border border-slate-200">1</span></div><div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm mb-12 w-full max-w-[280px] aspect-square flex items-center justify-center"><div id="schulte-grid" class="w-full h-full gap-1.5 grid"></div></div></div>
+    <!-- 9. PATTERN -->
+    <div id="screen-game-pattern" class="screen relative z-20 flex-col items-center justify-center bg-slate-50"><div class="text-center mb-6 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm"><h3 class="text-base font-bold text-slate-700">اكتشف النمط الناقص</h3></div><div class="flex-1 flex flex-col items-center justify-center w-full px-4"><div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm mb-8 flex items-center justify-center gap-2 text-2xl w-full max-w-md" id="pattern-display" dir="ltr"></div><div id="pattern-options" class="w-full max-w-sm mx-auto grid grid-cols-3 gap-2"></div></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-puzzle-piece text-pink-500"></i><span class="text-xs text-slate-500 font-bold">النقاط:</span><span id="pattern-score" class="text-sm font-black text-slate-800">0</span></div></div>
+    <!-- 10. EMOTION -->
+    <div id="screen-game-emotion" class="screen relative z-20 flex-col items-center justify-center bg-slate-50"><div class="text-center mb-6 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm"><h3 class="text-base font-bold text-slate-700">ما هو الشعور الصحيح؟</h3></div><div class="flex-1 flex items-center justify-center w-full"><div class="text-[5rem] drop-shadow-sm transition-transform" id="emotion-display">😀</div></div><div id="emotion-options" class="w-full max-w-md mx-auto grid grid-cols-2 gap-3 px-4 pb-16"></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-face-smile text-fuchsia-500"></i><span class="text-xs text-slate-500 font-bold">النقاط:</span><span id="emotion-score" class="text-sm font-black text-slate-800">0</span></div></div>
+    <!-- 11. WORD -->
+    <div id="screen-game-word" class="screen relative z-20 flex-col items-center justify-center bg-slate-50"><div class="text-center mb-6 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm"><h3 class="text-base font-bold text-slate-700">أكمل الجملة</h3></div><div class="flex-1 flex items-center justify-center w-full px-4"><div class="bg-white border-2 border-lime-200 rounded-2xl px-5 py-6 shadow-sm text-center w-full max-w-lg" id="word-sentence-box"><h1 id="word-sentence" class="text-lg font-bold text-slate-800 leading-relaxed">أنا أذهب إلى المدرسة لكي _____</h1></div></div><div id="word-options" class="w-full max-w-lg mx-auto grid grid-cols-1 sm:grid-cols-3 gap-2 px-4 pb-16"></div></div>
+    <!-- 12. ASSOCIATION -->
+    <div id="screen-game-association" class="screen relative z-20 flex-col items-center justify-center bg-slate-50"><div class="text-center mb-6 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm"><h3 class="text-base font-bold text-slate-700">الكلمة المرتبطة منطقياً؟</h3></div><div class="flex-1 flex items-center justify-center w-full"><div class="bg-white rounded-full w-28 h-28 border-4 border-violet-100 shadow-sm flex items-center justify-center" id="assoc-main-box"><h1 id="assoc-main-word" class="text-xl font-black text-violet-600">مفتاح</h1></div></div><div id="assoc-options" class="w-full max-w-md mx-auto flex flex-wrap justify-center gap-2 px-4 pb-16"></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-link text-violet-500"></i><span class="text-xs text-slate-500 font-bold">النقاط:</span><span id="assoc-score" class="text-sm font-black text-slate-800">0</span></div></div>
+
+    <!-- NEW: VIDEO QUIZ -->
+    <div id="screen-game-video" class="screen relative z-20 flex-col items-center justify-center bg-slate-50 px-4 pt-16 pb-20">
+        <div class="w-full max-w-2xl bg-black rounded-2xl shadow-xl overflow-hidden mb-6 aspect-video flex items-center justify-center text-white relative">
+            <iframe id="video-iframe" class="w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            <div id="video-overlay" class="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center z-10 p-6 text-center">
+                <i class="fa-brands fa-youtube text-5xl text-rose-500 mb-3"></i>
+                <h3 class="text-lg font-bold text-white mb-4">شاهد الفيديو التفاعلي بتركيز، ثم أجب!</h3>
+                <button onclick="videoGame.startVideo()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-black transition">ابدأ المشاهدة <i class="fa-solid fa-play ml-1"></i></button>
+            </div>
+        </div>
+        <div id="video-quiz-section" class="w-full max-w-lg hidden flex-col items-center animate-fadeIn">
+            <h3 class="text-base font-black text-slate-800 mb-4 text-center bg-white px-6 py-3 rounded-2xl border border-slate-200 shadow-sm w-full">ما هو الشيء الذي كان يبحث عنه البطل في المقطع؟</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full" id="video-options"></div>
+        </div>
+    </div>
+
+    <!-- NEW: AUDIO CALL -->
+    <div id="screen-game-audio" class="screen relative z-20 flex-col items-center justify-center bg-slate-900 px-4">
+        <div class="w-full max-w-sm bg-slate-800 border border-slate-700 rounded-[2rem] p-6 flex flex-col items-center relative overflow-hidden shadow-2xl">
+            <div id="audio-wave" class="absolute inset-0 opacity-20 pointer-events-none hidden" style="background: repeating-radial-gradient(circle, #10b981 0, transparent 20%); background-size: 100px 100px; animation: pulseSoft 2s infinite;"></div>
+            <div class="w-20 h-20 bg-slate-700 rounded-full flex items-center justify-center text-3xl text-emerald-400 mb-4 z-10 shadow-lg border-2 border-slate-600"><i class="fa-solid fa-microphone"></i></div>
+            <h2 class="text-xl font-black text-white z-10 mb-1">مكالمة واردة...</h2>
+            <p class="text-xs text-slate-400 font-bold z-10 mb-8">استمع جيداً للتفاصيل</p>
+            
+            <audio id="audio-player" class="hidden" controls></audio>
+            
+            <button id="btn-audio-play" onclick="audioGame.playAudio()" class="w-16 h-16 bg-emerald-500 rounded-full text-white text-2xl flex items-center justify-center hover:bg-emerald-600 transition shadow-[0_0_20px_rgba(16,185,129,0.4)] z-10"><i class="fa-solid fa-phone"></i></button>
+            
+            <div id="audio-quiz-section" class="w-full mt-6 hidden flex-col animate-fadeIn z-10">
+                <p class="text-sm font-bold text-white text-center mb-4">في أي ساعة تم تحديد الموعد؟</p>
+                <div class="grid grid-cols-2 gap-2" id="audio-options"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================== REWARD SCREEN ==================== -->
+    <div id="screen-reward" class="absolute inset-0 bg-white/95 backdrop-blur-sm z-[100] flex-col items-center justify-center hidden">
+        <div class="w-16 h-16 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-3xl mb-3 shadow-sm border border-amber-100"><i class="fa-solid fa-star"></i></div>
+        <h2 class="text-2xl font-black text-slate-800 mb-4">أداء ممتاز!</h2>
+        <div class="bg-white p-5 rounded-2xl text-center mb-6 border border-slate-100 shadow-md min-w-[220px]">
+            <div class="text-[10px] text-slate-400 font-bold mb-1">طاقة مكتسبة</div>
+            <div class="text-4xl font-black text-amber-500 mb-2">+<span id="reward-points">0</span></div>
+            <div class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 px-2 py-1 rounded md font-bold border border-emerald-100 text-[10px]">
+                <i class="fa-solid fa-battery-full"></i> شحن الدماغ +<span id="reward-charge">0</span>%
+            </div>
+        </div>
+        <button onclick="app.collectReward()" class="px-6 py-2.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm transition shadow-sm flex items-center gap-2 hover:-translate-y-0.5">
+            جمع والمتابعة
+        </button>
+    </div>
+
+
+    <!-- FIREBASE DB LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBzNJ4BUm2-uzUXlrNd8tg4M5OLzu1GOjg",
+            authDomain: "nabih-40d31.firebaseapp.com",
+            projectId: "nabih-40d31",
+            storageBucket: "nabih-40d31.firebasestorage.app",
+            messagingSenderId: "624219593568",
+            appId: "1:624219593568:web:624f3c7a0031828a72dc05"
+        };
+
+        const fApp = initializeApp(firebaseConfig);
+        const db = getFirestore(fApp);
+
+        // Core App Logic Linked to Cloud
+        window.app = {
+            studentDocId: null, studentData: null,
+            totalEnergy: 0, level: 1, xpForNextLevel: 500, dailyCharge: 15, globalTimer: null, timeRemaining: 0, pendingEnergy: 0, pendingCharge: 0,
+            expandedUnit: null, openedUnits: [1],
+            gameProgress: {}, 
+            
+            ranks: [ { lvl: 1, name: 'شبل مبتدئ' }, { lvl: 2, name: 'مكتشف صغير' }, { lvl: 3, name: 'لمّاح' }, { lvl: 4, name: 'فطن' }, { lvl: 5, name: 'ذكي' }, { lvl: 6, name: 'موهوب' } ],
+            unitsPerPage: 4, currentUnitPage: 0, units: [],
+            
+            // إضافة الألعاب الجديدة للقائمة المتاحة
+            lessonsData: {
+                reaction: { title: 'صائد النجوم', icon: 'fa-meteor', color: 'amber', action: 'reactionGame.start()' },
+                memory: { title: 'شفرة الخزنة', icon: 'fa-lock', color: 'purple', action: 'memoryGame.start()' },
+                flex: { title: 'البوابات العكسية', icon: 'fa-shuffle', color: 'emerald', action: 'flexGame.start()' },
+                stroop: { title: 'تحدي الألوان', icon: 'fa-palette', color: 'rose', action: 'stroopGame.start()' },
+                matrix: { title: 'مصفوفة التركيز', icon: 'fa-border-all', color: 'cyan', action: 'matrixGame.start()' },
+                math: { title: 'الميزان الذكي', icon: 'fa-calculator', color: 'indigo', action: 'mathGame.start()' },
+                visual: { title: 'العين الثاقبة', icon: 'fa-eye', color: 'amber', action: 'visualGame.start()' },
+                schulte: { title: 'شبكة الأرقام', icon: 'fa-table-cells-large', color: 'teal', action: 'schulteGame.start()' },
+                pattern: { title: 'النمط الذكي', icon: 'fa-puzzle-piece', color: 'pink', action: 'patternGame.start()' },
+                emotion: { title: 'قارئ المشاعر', icon: 'fa-face-smile-beam', color: 'fuchsia', action: 'emotionGame.start()' },
+                word: { title: 'الكلمة المفقودة', icon: 'fa-comment-dots', color: 'lime', action: 'wordGame.start()' },
+                association: { title: 'رابط العجائب', icon: 'fa-link', color: 'violet', action: 'associationGame.start()' },
+                video_quiz: { title: 'فيديو تفاعلي', icon: 'fa-file-video', color: 'blue', action: 'videoGame.start()' },
+                audio_call: { title: 'مكالمة صوتية', icon: 'fa-phone-volume', color: 'emerald', action: 'audioGame.start()' }
+            },
+            currentGameConfig: null, // للإعدادات الديناميكية المستوردة من السحابة
+
+            // 1. Cloud Login
+            async login(e) {
+                e.preventDefault();
+                const phoneInput = document.getElementById('loginPhone').value.trim();
+                const btn = document.getElementById('loginBtn');
+                const originalTxt = btn.innerHTML;
+
+                if(!phoneInput) return;
+                btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> جاري البحث عن ملفك...';
+
+                try {
+                    const q = query(collection(db, "students"), where("parentPhone", "==", phoneInput));
+                    const snap = await getDocs(q);
+
+                    if (snap.empty) {
+                        alert("رقم الجوال غير مسجل. يرجى الاشتراك من البوابة الرئيسية.");
+                        btn.innerHTML = originalTxt;
+                        return;
+                    }
+
+                    const sDoc = snap.docs[0];
+                    this.studentDocId = sDoc.id;
+                    this.studentData = sDoc.data();
+                    
+                    if(this.studentData.totalEnergy) this.totalEnergy = this.studentData.totalEnergy;
+                    if(this.studentData.gameProgress) this.gameProgress = { ...this.gameProgress, ...this.studentData.gameProgress };
+                    
+                    document.getElementById('student-name-display').textContent = this.studentData.name;
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> تم الدخول بنجاح';
+                    btn.classList.replace('bg-brand-600', 'bg-emerald-500');
+                    
+                    setTimeout(() => {
+                        this.init();
+                        document.getElementById('screen-login').classList.remove('active');
+                        document.getElementById('screen-dashboard').classList.add('active');
+                    }, 800);
+
+                } catch (error) {
+                    console.error("Login Err:", error);
+                    alert("خطأ في الاتصال بالخوادم.");
+                    btn.innerHTML = originalTxt;
+                }
+            },
+
+            // 2. Cloud Sync
+            async saveProgressToCloud() {
+                if(!this.studentDocId) return;
+                try {
+                    const overallProgress = Math.min(100, Math.floor(this.totalEnergy / 100)); 
+                    await updateDoc(doc(db, "students", this.studentDocId), {
+                        totalEnergy: this.totalEnergy,
+                        gameProgress: this.gameProgress,
+                        progress: overallProgress,
+                        lastActive: serverTimestamp()
+                    });
+                } catch(e) { console.error("Cloud Sync Failed", e); }
+            },
+
+            async init() { 
+                // جلب الوحدات (CMS) من قاعدة بيانات الإدارة
+                try {
+                    const snap = await getDocs(collection(db, "units"));
+                    if(!snap.empty) {
+                        // تصفية وعرض الوحدات المفعلة فقط وترتيبها
+                        this.units = snap.docs.map(d => d.data()).filter(u => u.status === 'active').sort((a,b) => a.id - b.id);
+                    }
+                    this.updateUI(); 
+                    this.renderUnits(); 
+                } catch(e) { console.error(e); }
+            },
+
+            getUnitProgress(unitId) {
+                const unit = this.units.find(u => u.id === unitId);
+                if(!unit || !unit.games || unit.games.length === 0) return 0;
+                let totalLvl = 0;
+                unit.games.forEach(gObj => totalLvl += Math.min(10, this.gameProgress[gObj.key] || 1));
+                const minPossible = unit.games.length * 1;
+                const maxPossible = unit.games.length * 10;
+                if(maxPossible === minPossible) return 0;
+                let progress = ((totalLvl - minPossible) / (maxPossible - minPossible)) * 100;
+                return Math.max(0, Math.min(100, progress));
+            },
+
+            getPageProgress(pageIndex) {
+                const start = pageIndex * 4;
+                const pageUnits = this.units.slice(start, start + 4);
+                let total = 0;
+                pageUnits.forEach(u => total += this.getUnitProgress(u.id));
+                return pageUnits.length ? (total / pageUnits.length) : 0;
+            },
+
+            renderUnits() {
+                const grid = document.getElementById('units-grid');
+                grid.innerHTML = '';
+                
+                if(this.units.length === 0) {
+                    grid.innerHTML = `<div class="text-center py-10 bg-white rounded-2xl border border-slate-200 border-dashed col-span-1 md:col-span-2"><i class="fa-solid fa-box-open text-3xl text-slate-300 mb-3"></i><p class="text-sm font-bold text-slate-500">لا يوجد وحدات منشورة حتى الآن.</p></div>`;
+                    return;
+                }
+
+                const isCurrentGroupUnlocked = this.currentUnitPage === 0 || this.getPageProgress(this.currentUnitPage - 1) >= 70;
+                const currentGroupProgress = this.getPageProgress(this.currentUnitPage);
+                
+                document.getElementById('group-index-text').textContent = (this.currentUnitPage + 1);
+                document.getElementById('group-progress-text').textContent = `${Math.floor(currentGroupProgress)}%`;
+                document.getElementById('group-progress-bar').style.width = `${currentGroupProgress}%`;
+                
+                document.getElementById('btn-prev-page').disabled = this.currentUnitPage === 0;
+                document.getElementById('btn-next-page').disabled = (this.currentUnitPage + 1) * this.unitsPerPage >= this.units.length;
+
+                const start = this.currentUnitPage * this.unitsPerPage;
+                const visibleUnits = this.units.slice(start, start + this.unitsPerPage);
+
+                visibleUnits.forEach((u) => {
+                    const isExpanded = this.expandedUnit === u.id;
+                    const unitProgressPercent = this.getUnitProgress(u.id);
+                    const isOpened = this.openedUnits.includes(u.id);
+
+                    let cardClasses = `unit-card flex flex-col z-10 transition-all duration-300 `;
+                    let lockOverlay = '';
+
+                    if (isCurrentGroupUnlocked) {
+                        if (isOpened) { cardClasses += `opacity-100 interactive ${isExpanded ? 'expanded border-brand-500 shadow-md md:col-span-2' : 'border-slate-200'}`; } 
+                        else { cardClasses += `opacity-70 hover:opacity-100 interactive border-dashed border-brand-300 bg-brand-50/40`; }
+                    } else {
+                        cardClasses += 'opacity-90 border-slate-200 cursor-not-allowed ';
+                        lockOverlay = `
+                            <div class="absolute inset-0 bg-slate-100/70 backdrop-blur-[2px] flex flex-col items-center justify-center z-50 rounded-[1.1rem]">
+                                <div class="w-14 h-14 bg-white rounded-full shadow-md flex items-center justify-center text-slate-400 text-2xl mb-2"><i class="fa-solid fa-lock"></i></div>
+                                <span class="bg-slate-800 text-white font-bold px-4 py-1.5 rounded-lg text-[10px] shadow-sm text-center">مقفلة<br><span class="text-amber-400">تتطلب 70% من المجموعة السابقة</span></span>
+                            </div>
+                        `;
+                    }
+
+                    let cardHTML = `<div class="${cardClasses}" `;
+                    if (isCurrentGroupUnlocked) { if (isOpened) cardHTML += `onclick="app.toggleUnit(${u.id}, event)"`; else cardHTML += `onclick="app.confirmOpenUnit(${u.id})"`; }
+                    cardHTML += `>${lockOverlay}`;
+                    
+                    if (isCurrentGroupUnlocked && !isOpened) {
+                        cardHTML += `
+                            <div class="flex flex-col items-center justify-center h-full min-h-[160px] text-center pointer-events-none">
+                                <div class="w-14 h-14 rounded-full bg-brand-100 text-brand-500 flex items-center justify-center text-2xl mb-3 shadow-sm animate-pulse-soft"><i class="fa-solid fa-cube"></i></div>
+                                <h4 class="text-lg font-black text-brand-700 mb-1">وحدة جديدة</h4>
+                                <p class="text-xs text-brand-600/80 font-bold">اضغط لاكتشاف المحتوى</p>
+                            </div>
+                        `;
+                    } else {
+                        cardHTML += `
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="w-10 h-10 rounded-lg ${isExpanded ? 'bg-brand-500 text-white' : 'bg-brand-50 text-brand-600'} flex items-center justify-center text-lg transition-colors"><i class="fa-solid fa-layer-group"></i></div>
+                            </div>
+                            <h4 class="text-base md:text-lg font-bold text-slate-800 mb-0.5">${u.title}</h4>
+                            <p class="text-[10px] text-slate-500 mb-4 flex-1">${u.desc}</p>
+                            
+                            <div class="w-full mt-auto">
+                                <div class="flex justify-between text-[10px] font-bold text-slate-600 mb-1.5">
+                                    <span>مستوى الإنجاز</span>
+                                    <span>${Math.floor(unitProgressPercent)}%</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden relative">
+                                    <div class="h-full bg-brand-500 transition-all duration-500" style="width: ${unitProgressPercent}%"></div>
+                                </div>
+                            </div>
+                        `;
+
+                        if (isExpanded && isCurrentGroupUnlocked && isOpened) {
+                            cardHTML += `<div class="mt-4 pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-2 animate-fade-in" onclick="event.stopPropagation()">`;
+                            if(u.games) {
+                                u.games.forEach((gameObj, index) => {
+                                    const lesson = this.lessonsData[gameObj.key];
+                                    if(!lesson) return;
+                                    const gLevel = this.gameProgress[gameObj.key] || 1;
+                                    const gProgressPercent = Math.min(100, (gLevel / 10) * 100);
+                                    
+                                    cardHTML += `
+                                        <div onclick="app.playGame(${u.id}, ${index})" class="flex items-center justify-between p-2.5 bg-slate-50/50 rounded-lg hover:bg-${lesson.color}-50 transition border border-slate-100 cursor-pointer group">
+                                            <div class="flex items-center gap-2.5 w-full">
+                                                <div class="w-8 h-8 rounded-md bg-${lesson.color}-100 text-${lesson.color}-500 flex items-center justify-center shrink-0 text-sm"><i class="fa-solid ${lesson.icon}"></i></div>
+                                                <div class="flex-1">
+                                                    <div class="flex justify-between items-center mb-1"><h5 class="font-bold text-slate-700 text-[11px] md:text-xs">${lesson.title}</h5><span class="text-[9px] text-slate-400 bg-white px-1.5 rounded border border-slate-100">مستوى ${gLevel}</span></div>
+                                                    <div class="w-full h-1 bg-slate-200 rounded-full"><div class="h-full bg-${lesson.color}-500 rounded-full" style="width: ${gProgressPercent}%"></div></div>
+                                                </div>
+                                            </div>
+                                            <div class="w-6 h-6 rounded-full bg-white text-${lesson.color}-500 flex items-center justify-center shrink-0 mr-2 shadow-sm group-hover:scale-110 transition border border-${lesson.color}-100"><i class="fa-solid fa-play text-[9px]"></i></div>
+                                        </div>
+                                    `;
+                                });
+                            }
+                            cardHTML += `</div>`;
+                        }
+                    }
+                    cardHTML += `</div>`;
+                    grid.innerHTML += cardHTML;
+                });
+            },
+
+            confirmOpenUnit(unitId) {
+                this.pendingUnitToOpen = unitId;
+                document.getElementById('modal-confirm-open').classList.remove('hidden');
+                setTimeout(() => document.getElementById('modal-confirm-content').style.transform = 'scale(1)', 10);
+            },
+            closeConfirmModal() {
+                document.getElementById('modal-confirm-content').style.transform = 'scale(0.95)';
+                setTimeout(() => document.getElementById('modal-confirm-open').classList.add('hidden'), 200);
+            },
+            executeOpenUnit() {
+                if(this.pendingUnitToOpen && !this.openedUnits.includes(this.pendingUnitToOpen)) {
+                    this.openedUnits.push(this.pendingUnitToOpen);
+                    this.expandedUnit = this.pendingUnitToOpen;
+                    this.renderUnits();
+                }
+                this.closeConfirmModal();
+            },
+
+            toggleUnit(unitId, event) {
+                this.expandedUnit = this.expandedUnit === unitId ? null : unitId;
+                this.renderUnits();
+            },
+            nextUnitPage() { if ((this.currentUnitPage + 1) * this.unitsPerPage < this.units.length) { this.expandedUnit = null; this.currentUnitPage++; this.renderUnits(); } },
+            prevUnitPage() { if (this.currentUnitPage > 0) { this.expandedUnit = null; this.currentUnitPage--; this.renderUnits(); } },
+            
+            // قراءة الإعدادات الديناميكية من الـ CMS
+            playGame(unitId, gameIndex) { 
+                const unit = this.units.find(u => u.id === unitId);
+                const gameConfig = unit.games[gameIndex];
+                this.currentGameConfig = gameConfig; 
+                this.activeGameKey = gameConfig.key;
+                eval(this.lessonsData[gameConfig.key].action); 
+            },
+            
+            updateGameProgress(gameKey, newLevel) { 
+                if(this.gameProgress[gameKey] === undefined || newLevel > this.gameProgress[gameKey]) {
+                    this.gameProgress[gameKey] = newLevel; 
+                }
+            },
+
+            updateUI() {
+                document.getElementById('ui-total-energy').textContent = this.totalEnergy;
+                this.level = Math.min(24, Math.floor(this.totalEnergy / this.xpForNextLevel) + 1);
+                
+                const currentRank = this.ranks[Math.min(this.level - 1, this.ranks.length - 1)];
+                document.getElementById('header-title-badge').textContent = currentRank ? currentRank.name : 'بطل';
+                document.getElementById('ui-level-badge').textContent = `LVL ${this.level}`;
+                document.getElementById('current-lvl-text').textContent = `L${this.level}`;
+                document.getElementById('next-lvl-text').textContent = `L${Math.min(24, this.level + 1)}`;
+                
+                const xpInCurrentLevel = this.totalEnergy % this.xpForNextLevel;
+                document.getElementById('xp-bar').style.width = `${this.level >= 24 ? 100 : (xpInCurrentLevel / this.xpForNextLevel) * 100}%`;
+                
+                const chargeBar = document.getElementById('brain-charge-bar'); 
+                const chargeText = document.getElementById('brain-status-text'); 
+                chargeBar.style.width = `${this.dailyCharge}%`;
+                if(this.dailyCharge < 40) { chargeBar.className = 'h-full bg-rose-500 progress-bar-fill'; chargeText.innerHTML = 'يحتاج شحن'; chargeText.className = 'text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100'; }
+                else if(this.dailyCharge < 80) { chargeBar.className = 'h-full bg-amber-400 progress-bar-fill'; chargeText.innerHTML = 'شحن متوسط'; chargeText.className = 'text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100'; }
+                else { chargeBar.className = 'h-full bg-emerald-500 progress-bar-fill'; chargeText.innerHTML = 'مستعد'; chargeText.className = 'text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100'; }
+            },
+
+            growBrain() {
+                this.totalEnergy += 2;
+                this.updateUI();
+                this.saveProgressToCloud();
+            },
+
+            showLevelModal() {
+                const modal = document.getElementById('modal-level-info'); const content = document.getElementById('modal-level-content'); const grid = document.getElementById('ranks-grid');
+                grid.innerHTML = '';
+                this.ranks.forEach(rank => {
+                    const isUnlocked = this.level >= rank.lvl; const isCurrent = this.level === rank.lvl;
+                    let classes = `rank-item p-2.5 rounded-lg border border-slate-100 bg-slate-50 flex items-center justify-between transition ${isCurrent ? 'current border-brand-300 shadow-sm' : (isUnlocked ? 'bg-white' : 'locked')}`;
+                    grid.innerHTML += `<div class="${classes}"> <div class="flex items-center gap-2"> <div class="w-6 h-6 rounded-md bg-slate-50 flex items-center justify-center text-xs ${isUnlocked ? 'text-brand-500' : 'text-slate-300'}"><i class="fa-solid fa-star"></i></div> <div> <div class="text-[8px] text-slate-400 font-bold uppercase">مستوى ${rank.lvl}</div> <div class="text-[10px] font-bold text-slate-700">${rank.name}</div> </div> </div> ${!isUnlocked ? '<i class="fa-solid fa-lock text-slate-300 text-xs"></i>' : '<i class="fa-solid fa-check-circle text-emerald-500 text-xs"></i>'} </div>`;
+                });
+                document.getElementById('level-modal-progress-text').innerHTML = this.level < 24 ? `متبقي <b class="text-brand-600">${(this.level * this.xpForNextLevel) - this.totalEnergy} طاقة</b> للوصول للقب التالي` : 'لقد وصلت لأعلى مستوى! 🏆';
+                modal.classList.remove('hidden'); setTimeout(() => content.style.transform = 'scale(1)', 10);
+            },
+            closeLevelModal() { document.getElementById('modal-level-content').style.transform = 'scale(0.95)'; setTimeout(() => document.getElementById('modal-level-info').classList.add('hidden'), 200); },
+
+            showScreen(screenId, gameTitle = '') {
+                clearInterval(this.globalTimer);
+                document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+                document.getElementById(screenId).classList.add('active');
+                const gameHeader = document.getElementById('game-header'); const timerContainer = document.getElementById('timer-container'); const titleEl = document.getElementById('active-game-title');
+                if(screenId.includes('game-')) {
+                    gameHeader.classList.remove('hidden'); titleEl.textContent = gameTitle;
+                    if(['screen-game-memory', 'screen-game-matrix', 'screen-game-video', 'screen-game-audio'].includes(screenId)) timerContainer.style.display = 'none'; else timerContainer.style.display = 'flex';
+                } else gameHeader.classList.add('hidden');
+            },
+            
+            startGlobalTimer(seconds, onTimeUp) {
+                this.timeRemaining = seconds; const timerEl = document.getElementById('global-timer'); timerEl.textContent = this.timeRemaining; clearInterval(this.globalTimer);
+                this.globalTimer = setInterval(() => { this.timeRemaining--; timerEl.textContent = this.timeRemaining; if(this.timeRemaining <= 5) { timerEl.classList.add('text-rose-500'); timerEl.classList.remove('text-slate-800'); } else { timerEl.classList.remove('text-rose-500'); timerEl.classList.add('text-slate-800'); } if(this.timeRemaining <= 0) { clearInterval(this.globalTimer); onTimeUp(); } }, 1000);
+            },
+            showRewardScreen(energyPoints, chargePoints) {
+                this.pendingEnergy = energyPoints; this.pendingCharge = chargePoints;
+                document.getElementById('reward-points').textContent = energyPoints; document.getElementById('reward-charge').textContent = chargePoints;
+                document.getElementById('screen-reward').style.display = 'flex';
+            },
+            collectReward() {
+                document.getElementById('screen-reward').style.display = 'none'; 
+                this.totalEnergy += this.pendingEnergy; 
+                this.dailyCharge = Math.min(100, this.dailyCharge + this.pendingCharge);
+                this.updateUI(); 
+                this.renderUnits(); 
+                this.saveProgressToCloud();
+                this.showScreen('screen-dashboard');
+            }
+        };
+
+        document.getElementById('btn-confirm-open').addEventListener('click', () => app.executeOpenUnit());
+
+        // ==================== GAMES LOGIC (DYNAMIC SPEED & TIME) ====================
+        
+        window.reactionGame = {
+            score: 0, level: 1, targetTimeout: null, isActive: false,
+            start() { 
+                app.showScreen('screen-game-reaction', 'صائد النجوم'); this.score = 0; this.level = app.gameProgress.reaction || 1; this.isActive = true; document.getElementById('reaction-score').textContent = this.score; document.getElementById('reaction-area').innerHTML = ''; 
+                const tLimit = app.currentGameConfig.timeLimit || 15;
+                app.startGlobalTimer(tLimit, () => this.end()); this.spawn(); 
+            },
+            spawn() { 
+                if(!this.isActive) return; const area = document.getElementById('reaction-area'); const target = document.createElement('div'); const x = Math.floor(Math.random() * 75) + 10; const y = Math.floor(Math.random() * 75) + 10; 
+                target.className = 'game-target w-14 h-14 rounded-full bg-gradient-to-br from-amber-300 to-amber-500 shadow-[0_0_15px_rgba(251,191,36,0.6)] border-2 border-white flex items-center justify-center text-white cursor-pointer text-xl hover:scale-110 z-50 animate-pulse'; 
+                target.style.left = `${x}%`; target.style.top = `${y}%`; target.innerHTML = '<i class="fa-solid fa-star pointer-events-none"></i>'; 
+                target.onpointerdown = (e) => { e.preventDefault(); if(!this.isActive) return; this.score += 15; this.level = Math.min(10, Math.floor(this.score / 50) + 1); document.getElementById('reaction-score').textContent = this.score; target.remove(); clearTimeout(this.targetTimeout); this.spawn(); }; 
+                area.appendChild(target); 
+                
+                // Dynamic Speed Multiplier from CMS
+                const multiplier = app.currentGameConfig.speed || 1.0;
+                const speed = Math.max(500, (2000 - (this.level * 100)) / multiplier); 
+                this.targetTimeout = setTimeout(() => { if (target.parentNode) { target.remove(); this.spawn(); } }, speed); 
+            },
+            stop() { this.isActive = false; clearTimeout(this.targetTimeout); },
+            end() { this.stop(); app.updateGameProgress('reaction', this.level); app.showRewardScreen(this.score, 10); } 
+        };
+
+        window.memoryGame = {
+            sequence: [], playerSequence: [], level: 1, isActive: false, canInput: false,
+            start() { app.showScreen('screen-game-memory', 'شفرة الخزنة'); this.sequence = []; this.level = app.gameProgress.memory || 1; this.isActive = true; this.setupKeypad(); setTimeout(() => this.nextLevel(), 1000); },
+            setupKeypad() { const pad = document.getElementById('memory-keypad'); pad.innerHTML = ''; for(let i=1; i<=9; i++) { const btn = document.createElement('button'); btn.className = 'keypad-btn aspect-square w-full h-full'; btn.id = `mem-btn-${i}`; btn.textContent = i; btn.onpointerdown = () => this.handleInput(i); pad.appendChild(btn); } },
+            nextLevel() { if(!this.isActive) return; this.playerSequence = []; this.canInput = false; const msg = document.getElementById('memory-msg'); msg.textContent = '* '.repeat(this.sequence.length + 1).trim(); msg.className = 'text-xl font-black tracking-[0.4em] text-slate-700 h-8 animate-pulse'; this.sequence.push(Math.floor(Math.random() * 9) + 1); this.playSequence(); },
+            playSequence() { 
+                let delay = 0; 
+                const multiplier = app.currentGameConfig.speed || 1.0;
+                const flashTime = Math.max(200, (800 - (this.level * 40)) / multiplier); 
+                const stepTime = flashTime + (150 / multiplier); 
+                
+                this.sequence.forEach((btnIndex) => { setTimeout(() => { this.flashButton(btnIndex, flashTime); }, delay); delay += stepTime; }); 
+                setTimeout(() => { this.canInput = true; document.getElementById('memory-msg').className = 'text-xl font-black tracking-[0.4em] text-brand-600 h-8'; }, delay + 200); 
+            },
+            flashButton(index, duration) { const btn = document.getElementById(`mem-btn-${index}`); btn.classList.add('flash'); setTimeout(() => btn.classList.remove('flash'), duration - 50); },
+            handleInput(index) { if(!this.isActive || !this.canInput) return; this.flashButton(index, 200); this.playerSequence.push(index); const currIdx = this.playerSequence.length - 1; if(this.playerSequence[currIdx] !== this.sequence[currIdx]) { this.endGame(); return; } if(this.playerSequence.length === this.sequence.length) { this.canInput = false; document.getElementById('memory-msg').className = 'text-xl font-black tracking-[0.4em] text-emerald-500 h-8'; this.level = Math.min(10, this.level + 1); setTimeout(() => this.nextLevel(), 800); } },
+            stop() { this.isActive = false; }, endGame() { this.canInput = false; document.getElementById('memory-msg').textContent = 'خطأ'; document.getElementById('memory-msg').className = 'text-lg font-black text-rose-600 h-8 animate-pulse'; setTimeout(() => { this.stop(); app.updateGameProgress('memory', this.level); app.showRewardScreen((this.level - 1) * 30, 15); }, 1500); }
+        };
+
+        window.flexGame = {
+            score: 0, level: 1, isActive: false, isReversed: false, currentItemColor: '', colors: [{name:'blue', hex:'#3b82f6'}, {name:'red', hex:'#f43f5e'}],
+            start() { 
+                app.showScreen('screen-game-flex', 'البوابات العكسية'); this.score = 0; this.level = app.gameProgress.flex || 1; this.isActive = true; this.isReversed = false; document.getElementById('flex-score').textContent = this.score; this.updateRuleUI(); this.spawnItem(); 
+                const tLimit = app.currentGameConfig.timeLimit || 15;
+                app.startGlobalTimer(tLimit, () => this.end()); setTimeout(() => { if(this.isActive) { this.isReversed = true; this.updateRuleUI(); } }, (tLimit*1000)/2); 
+            },
+            updateRuleUI() { const box = document.getElementById('flex-rule-box'); const text = document.getElementById('flex-rule-text'); box.style.transform = 'scale(1.05)'; setTimeout(() => box.style.transform = 'scale(1)', 200); if(this.isReversed) { box.className = 'bg-white border border-rose-300 rounded-full py-2 px-5 inline-block transition-all shadow-sm animate-pulse'; text.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> البوابة العكسية!'; text.className = 'text-sm font-bold text-rose-600'; } else { box.className = 'bg-white border border-emerald-300 rounded-full py-2 px-5 inline-block transition-all shadow-sm'; text.innerHTML = '<i class="fa-solid fa-arrow-right-arrow-left"></i> طابق اللون'; text.className = 'text-sm font-bold text-emerald-600'; } },
+            spawnItem() { if(!this.isActive) return; const item = document.getElementById('flex-item'); item.style.transform = 'scale(0)'; setTimeout(() => { const c = this.colors[Math.floor(Math.random() * this.colors.length)]; this.currentItemColor = c.name; item.style.backgroundColor = c.hex; item.style.transform = 'scale(1)'; }, 100); },
+            handleSort(gateColor) { 
+                if(!this.isActive) return; const isCorrect = (!this.isReversed) ? (gateColor === this.currentItemColor) : (gateColor !== this.currentItemColor); const item = document.getElementById('flex-item'); 
+                if(isCorrect) { this.score += 20; this.level = Math.min(10, Math.floor(this.score / 60) + 1); document.getElementById('flex-score').textContent = this.score; item.style.transform = gateColor === 'blue' ? 'translateX(100px) scale(0)' : 'translateX(-100px) scale(0)'; } else { this.score = Math.max(0, this.score - 10); document.getElementById('flex-score').textContent = this.score; item.style.transform = 'translateX(15px)'; setTimeout(() => item.style.transform = 'translateX(-15px)', 100); setTimeout(() => item.style.transform = 'translateX(0)', 200); } 
+                
+                const multiplier = app.currentGameConfig.speed || 1.0;
+                setTimeout(() => this.spawnItem(), Math.max(100, (300 - (this.level * 15)) / multiplier)); 
+            },
+            stop() { this.isActive = false; }, end() { this.stop(); app.updateGameProgress('flex', this.level); app.showRewardScreen(this.score, 10); }
+        };
+
+        window.stroopGame = {
+            score: 0, level: 1, isActive: false, currentColorHex: '', colors: [{ text: 'أحمر', hex: '#e11d48', bg: 'bg-rose-500' }, { text: 'أزرق', hex: '#3b82f6', bg: 'bg-blue-500' }, { text: 'أخضر', hex: '#10b981', bg: 'bg-emerald-500' }, { text: 'أصفر', hex: '#f59e0b', bg: 'bg-amber-500' }],
+            start() { app.showScreen('screen-game-stroop', 'تحدي الألوان'); this.score = 0; this.level = app.gameProgress.stroop || 1; this.isActive = true; document.getElementById('stroop-score').textContent = this.score; this.generateButtons(); this.nextWord(); app.startGlobalTimer(app.currentGameConfig.timeLimit || 15, () => this.end()); },
+            generateButtons() { const container = document.getElementById('stroop-options'); container.innerHTML = ''; this.colors.forEach(c => { const btn = document.createElement('button'); btn.className = `w-16 h-12 md:w-24 md:h-14 rounded-xl font-bold text-sm md:text-base text-white shadow-sm transform hover:-translate-y-0.5 active:scale-95 ${c.bg}`; btn.textContent = c.text; btn.onclick = () => this.handleAnswer(c.hex); container.appendChild(btn); }); },
+            nextWord() { if(!this.isActive) return; const wordObj = this.colors[Math.floor(Math.random() * this.colors.length)]; const colorObj = this.colors[Math.floor(Math.random() * this.colors.length)]; this.currentColorHex = colorObj.hex; const el = document.getElementById('stroop-word'); el.textContent = wordObj.text; el.style.color = colorObj.hex; el.style.transform = 'scale(0.9)'; setTimeout(() => el.style.transform = 'scale(1)', 50); },
+            handleAnswer(selectedHex) { if(!this.isActive) return; const el = document.getElementById('stroop-word'); if(selectedHex === this.currentColorHex) { this.score += 15; this.level = Math.min(10, Math.floor(this.score / 60) + 1); el.style.transform = 'scale(1.05)'; } else { this.score = Math.max(0, this.score - 10); el.style.transform = 'translateX(10px)'; setTimeout(() => el.style.transform = 'translateX(-10px)', 100); } document.getElementById('stroop-score').textContent = this.score; setTimeout(() => { el.style.transform = 'scale(1) translateX(0)'; this.nextWord(); }, Math.max(100, (300 - (this.level * 10))/(app.currentGameConfig.speed||1.0))); },
+            stop() { this.isActive = false; }, end() { this.stop(); app.updateGameProgress('stroop', this.level); app.showRewardScreen(this.score, 10); }
+        };
+
+        window.matrixGame = {
+            level: 1, gridSize: 3, targetCount: 2, sequence: [], playerPicks: 0, isActive: false, canInput: false,
+            start() { app.showScreen('screen-game-matrix', 'مصفوفة التركيز'); this.level = app.gameProgress.matrix || 1; this.isActive = true; this.setupLevel(); },
+            setupLevel() { 
+                if(!this.isActive) return; this.gridSize = 3; this.targetCount = 2 + Math.floor(this.level/3); if(this.level > 5) this.gridSize = 4; if(this.level > 8) this.gridSize = 5; this.sequence = []; this.playerPicks = 0; this.canInput = false; const grid = document.getElementById('matrix-grid'); grid.style.gridTemplateColumns = `repeat(${this.gridSize}, minmax(0, 1fr))`; grid.innerHTML = ''; const totalCells = this.gridSize * this.gridSize; while(this.sequence.length < this.targetCount) { const r = Math.floor(Math.random() * totalCells); if(!this.sequence.includes(r)) this.sequence.push(r); } for(let i=0; i<totalCells; i++) { const cell = document.createElement('div'); cell.className = 'matrix-cell w-full h-full aspect-square'; cell.onclick = () => this.handleCellClick(cell, i); grid.appendChild(cell); } document.getElementById('matrix-msg').textContent = 'راقب المربعات...'; document.getElementById('matrix-msg').className = 'text-sm font-bold text-cyan-600 h-6 animate-pulse'; 
+                
+                const multiplier = app.currentGameConfig.speed || 1.0;
+                setTimeout(() => { this.sequence.forEach(index => grid.children[index].classList.add('flash')); setTimeout(() => { this.sequence.forEach(index => grid.children[index].classList.remove('flash')); this.canInput = true; document.getElementById('matrix-msg').textContent = 'أين كانت؟'; document.getElementById('matrix-msg').className = 'text-sm font-bold text-brand-600 h-6'; }, Math.max(300, (1500 - (this.level * 80))/multiplier)); }, 800); 
+            },
+            handleCellClick(cell, index) { if(!this.isActive || !this.canInput || cell.classList.contains('correct')) return; if(this.sequence.includes(index)) { cell.classList.add('correct'); this.playerPicks++; if(this.playerPicks === this.targetCount) { this.canInput = false; document.getElementById('matrix-msg').textContent = 'ممتاز!'; document.getElementById('matrix-msg').className = 'text-sm font-bold text-emerald-500 h-6'; this.level = Math.min(10, this.level + 1); setTimeout(() => this.setupLevel(), 800); } } else { cell.classList.add('wrong'); this.endGame(); } },
+            stop() { this.isActive = false; }, endGame() { this.canInput = false; document.getElementById('matrix-msg').textContent = 'خطأ!'; document.getElementById('matrix-msg').className = 'text-sm font-bold text-rose-600 h-6 animate-pulse'; const grid = document.getElementById('matrix-grid'); this.sequence.forEach(index => { if(!grid.children[index].classList.contains('correct')) grid.children[index].style.backgroundColor = '#93c5fd'; }); setTimeout(() => { this.stop(); app.updateGameProgress('matrix', this.level); app.showRewardScreen((this.level - 1) * 40, 15); }, 1500); }
+        };
+
+        window.mathGame = {
+            score: 0, level: 1, isActive: false, currentAnswerIsTrue: true,
+            start() { app.showScreen('screen-game-math', 'الميزان الذكي'); this.score = 0; this.level = app.gameProgress.math || 1; this.isActive = true; document.getElementById('math-score').textContent = this.score; this.generateEquation(); app.startGlobalTimer(app.currentGameConfig.timeLimit || 15, () => this.end()); },
+            generateEquation() { if(!this.isActive) return; const maxNum = 5 + (this.level * 2); const a = Math.floor(Math.random() * maxNum) + 1; const b = Math.floor(Math.random() * maxNum) + 1; const isAddition = Math.random() > 0.5; const realAnswer = isAddition ? (a + b) : Math.max(a, b) - Math.min(a, b); const strEq = isAddition ? `${a} + ${b}` : `${Math.max(a, b)} - ${Math.min(a, b)}`; this.currentAnswerIsTrue = Math.random() > 0.5; const shownAnswer = this.currentAnswerIsTrue ? realAnswer : realAnswer + (Math.random() > 0.5 ? 1 : -1) + (realAnswer===0?1:0); const eqBox = document.getElementById('math-equation-box'); const eqText = document.getElementById('math-equation'); eqBox.style.transform = 'scale(0.95)'; eqText.textContent = `${strEq} = ${shownAnswer}`; setTimeout(() => eqBox.style.transform = 'scale(1)', 100); },
+            handleAnswer(userSaysTrue) { if(!this.isActive) return; const eqBox = document.getElementById('math-equation-box'); if(userSaysTrue === this.currentAnswerIsTrue) { this.score += 15; this.level = Math.min(10, Math.floor(this.score / 60) + 1); eqBox.className = "bg-emerald-50 border-2 border-emerald-300 rounded-2xl px-6 py-6 shadow-sm text-center transform transition-transform w-full max-w-xs"; } else { this.score = Math.max(0, this.score - 10); eqBox.className = "bg-rose-50 border-2 border-rose-300 rounded-2xl px-6 py-6 shadow-sm text-center transform transition-transform translate-x-2 w-full max-w-xs"; setTimeout(() => eqBox.style.transform = 'translateX(-4px)', 100); } document.getElementById('math-score').textContent = this.score; setTimeout(() => { eqBox.className = "bg-white border-2 border-indigo-200 rounded-2xl px-6 py-6 shadow-sm text-center transform transition-transform w-full max-w-xs"; this.generateEquation(); }, 250); },
+            stop() { this.isActive = false; }, end() { this.stop(); app.updateGameProgress('math', this.level); app.showRewardScreen(this.score, 10); }
+        };
+
+        window.visualGame = {
+            score: 0, level: 1, isActive: false, diffIndex: 0, gridSize: 16, pairs: [['😀','😬'], ['🚗','🚓'], ['🍎','🍅'], ['🌞','🌛'], ['⚽','🏀'], ['🐶','🐱'], ['🍔','🥞'], ['🟩','🟢'], ['🟦','🔵']],
+            start() { app.showScreen('screen-game-visual', 'العين الثاقبة'); this.score = 0; this.level = app.gameProgress.visual || 1; this.isActive = true; document.getElementById('visual-score').textContent = this.score; this.generateGrid(); app.startGlobalTimer(app.currentGameConfig.timeLimit || 15, () => this.end()); },
+            generateGrid() { if(!this.isActive) return; if(this.score > 40) { this.gridSize = 20; this.level = Math.max(this.level, 2); } if(this.score > 80) { this.gridSize = 25; this.level = Math.max(this.level, 3); } const grid = document.getElementById('visual-grid'); grid.innerHTML = ''; if(this.gridSize === 16) grid.className = 'grid grid-cols-4 gap-1.5 w-full h-full'; if(this.gridSize === 20) grid.className = 'grid grid-cols-5 gap-1.5 w-full h-full'; if(this.gridSize === 25) grid.className = 'grid grid-cols-5 gap-1 w-full h-full'; const pair = this.pairs[Math.floor(Math.random() * this.pairs.length)]; this.diffIndex = Math.floor(Math.random() * this.gridSize); for(let i=0; i<this.gridSize; i++) { const btn = document.createElement('button'); btn.className = 'w-full h-full aspect-square rounded-lg bg-slate-50 hover:bg-amber-50 border border-slate-200 text-2xl flex items-center justify-center transition transform hover:-translate-y-0.5 shadow-sm'; btn.textContent = i === this.diffIndex ? pair[1] : pair[0]; btn.onpointerdown = () => this.handlePick(i, btn); grid.appendChild(btn); } },
+            handlePick(index, btnElement) { if(!this.isActive) return; if(index === this.diffIndex) { this.score += 20; btnElement.className = 'w-full h-full aspect-square rounded-lg bg-emerald-100 border border-emerald-500 text-2xl flex items-center justify-center scale-105 shadow-sm'; } else { this.score = Math.max(0, this.score - 5); btnElement.className = 'w-full h-full aspect-square rounded-lg bg-rose-100 border border-rose-500 text-2xl flex items-center justify-center transform translate-x-1'; setTimeout(() => btnElement.style.transform = 'translateX(-2px)', 100); } document.getElementById('visual-score').textContent = this.score; setTimeout(() => this.generateGrid(), 250); },
+            stop() { this.isActive = false; }, end() { this.stop(); app.updateGameProgress('visual', Math.min(10, Math.floor(this.score / 40) + 1)); app.showRewardScreen(this.score, 10); }
+        };
+
+        window.schulteGame = {
+            score: 0, level: 1, isActive: false, expectedNum: 1, gridSize: 9,
+            start() { app.showScreen('screen-game-schulte', 'شبكة الأرقام'); this.score = 0; this.level = app.gameProgress.schulte || 1; this.isActive = true; this.expectedNum = 1; this.gridSize = 9; this.generateGrid(); app.startGlobalTimer(app.currentGameConfig.timeLimit || 15, () => this.end()); },
+            generateGrid() { if(!this.isActive) return; document.getElementById('schulte-target').textContent = this.expectedNum; const grid = document.getElementById('schulte-grid'); grid.innerHTML = ''; if(this.gridSize === 9) grid.className = 'grid grid-cols-3 grid-rows-3 gap-2 w-full h-full'; if(this.gridSize === 16) grid.className = 'grid grid-cols-4 grid-rows-4 gap-1.5 w-full h-full'; let nums = Array.from({length: this.gridSize}, (_, i) => i + 1); nums.sort(() => Math.random() - 0.5); nums.forEach(num => { const btn = document.createElement('div'); btn.className = 'schulte-cell w-full h-full text-xl md:text-2xl'; btn.textContent = num; btn.onpointerdown = (e) => { e.preventDefault(); this.handlePick(num, btn); }; grid.appendChild(btn); }); },
+            handlePick(num, btnElement) { if(!this.isActive || btnElement.classList.contains('found')) return; if(num === this.expectedNum) { this.score += 10; btnElement.classList.add('found'); this.expectedNum++; if(this.expectedNum > this.gridSize) { this.score += 30; this.level = Math.min(10, this.level + 1); if(this.gridSize === 9) this.gridSize = 16; this.expectedNum = 1; setTimeout(() => this.generateGrid(), 400); } else { document.getElementById('schulte-target').textContent = this.expectedNum; const t = document.getElementById('schulte-target'); t.style.transform = 'scale(1.1)'; setTimeout(() => t.style.transform = 'scale(1)', 150); } } else { btnElement.classList.add('wrong'); setTimeout(() => btnElement.classList.remove('wrong'), 200); } },
+            stop() { this.isActive = false; }, end() { this.stop(); app.updateGameProgress('schulte', this.level); app.showRewardScreen(this.score, 15); }
+        };
+
+        window.patternGame = {
+            score: 0, level: 1, isActive: false, correctAnswer: '', patterns: [{ type: 'A B A B A', length: 5 }, { type: 'A A B B A', length: 5 }, { type: 'A B C A B', length: 5 }], emojis: ['🍎','🍊','🍇','🍉','🍓','🐱','🐶','🦊','🐸','🚗','✈️','🚀'],
+            start() { app.showScreen('screen-game-pattern', 'النمط الذكي'); this.score = 0; this.level = app.gameProgress.pattern || 1; this.isActive = true; document.getElementById('pattern-score').textContent = this.score; this.generatePattern(); app.startGlobalTimer(app.currentGameConfig.timeLimit || 15, () => this.end()); },
+            generatePattern() { if(!this.isActive) return; const pType = this.patterns[Math.floor(Math.random() * this.patterns.length)].type.split(' '); const shuffledEmojis = [...this.emojis].sort(() => 0.5 - Math.random()); const map = { 'A': shuffledEmojis[0], 'B': shuffledEmojis[1], 'C': shuffledEmojis[2] }; let seq = pType.map(char => map[char]); this.correctAnswer = seq[seq.length - 1]; seq[seq.length - 1] = '?'; const display = document.getElementById('pattern-display'); display.innerHTML = seq.map(item => `<span class="${item === '?' ? 'text-blue-500 font-black animate-pulse' : ''}">${item}</span>`).join(''); let options = [this.correctAnswer]; while(options.length < 3) { let rand = shuffledEmojis[Math.floor(Math.random() * shuffledEmojis.length)]; if(!options.includes(rand)) options.push(rand); } options.sort(() => 0.5 - Math.random()); const optsContainer = document.getElementById('pattern-options'); optsContainer.innerHTML = ''; options.forEach(opt => { const btn = document.createElement('button'); btn.className = 'h-14 bg-white rounded-xl shadow-sm border border-slate-200 text-2xl hover:bg-pink-50 hover:border-pink-200 transition transform hover:-translate-y-0.5'; btn.textContent = opt; btn.onclick = () => this.handleAnswer(opt); optsContainer.appendChild(btn); }); },
+            handleAnswer(selected) { if(!this.isActive) return; if(selected === this.correctAnswer) { this.score += 20; this.level = Math.min(10, Math.floor(this.score / 60) + 1); const display = document.getElementById('pattern-display'); display.lastElementChild.textContent = this.correctAnswer; display.lastElementChild.className = 'text-emerald-500 transform scale-110 transition-transform'; } else { this.score = Math.max(0, this.score - 5); const display = document.getElementById('pattern-display'); display.classList.add('animate-pulse'); display.style.transform = 'translateX(10px)'; setTimeout(() => display.style.transform = 'translateX(-10px)', 100); setTimeout(() => { display.style.transform = 'translateX(0)'; display.classList.remove('animate-pulse'); }, 200); } document.getElementById('pattern-score').textContent = this.score; setTimeout(() => this.generatePattern(), 400); },
+            stop() { this.isActive = false; }, end() { this.stop(); app.updateGameProgress('pattern', this.level); app.showRewardScreen(this.score, 10); }
+        };
+
+        window.emotionGame = {
+            score: 0, level: 1, isActive: false, emotions: [{ emoji: '😀', word: 'سعيد' }, { emoji: '😡', word: 'غاضب' }, { emoji: '😨', word: 'خائف' }, { emoji: '😭', word: 'حزين' }, { emoji: '😴', word: 'نعسان' }, { emoji: '🤔', word: 'مفكر' }], currentWord: '',
+            start() { app.showScreen('screen-game-emotion', 'قارئ المشاعر'); this.score = 0; this.level = app.gameProgress.emotion || 1; this.isActive = true; document.getElementById('emotion-score').textContent = this.score; this.generate(); app.startGlobalTimer(app.currentGameConfig.timeLimit || 15, () => this.end()); },
+            generate() { if(!this.isActive) return; const correctObj = this.emotions[Math.floor(Math.random() * this.emotions.length)]; this.currentWord = correctObj.word; const display = document.getElementById('emotion-display'); display.textContent = correctObj.emoji; display.style.transform = 'scale(0.9)'; setTimeout(() => display.style.transform = 'scale(1)', 50); let options = [correctObj.word]; const wordsOnly = this.emotions.map(e => e.word); while(options.length < 4) { let rand = wordsOnly[Math.floor(Math.random() * wordsOnly.length)]; if(!options.includes(rand)) options.push(rand); } options.sort(() => 0.5 - Math.random()); const optsContainer = document.getElementById('emotion-options'); optsContainer.innerHTML = ''; options.forEach(opt => { const btn = document.createElement('button'); btn.className = 'h-12 bg-white rounded-lg shadow-sm border border-slate-200 text-sm font-bold text-slate-700 hover:bg-fuchsia-50 hover:text-fuchsia-600 hover:border-fuchsia-200 transition transform hover:-translate-y-0.5'; btn.textContent = opt; btn.onclick = () => this.handleAnswer(opt, btn); optsContainer.appendChild(btn); }); },
+            handleAnswer(selected, btn) { if(!this.isActive) return; if(selected === this.currentWord) { this.score += 15; this.level = Math.min(10, Math.floor(this.score / 60) + 1); btn.className = 'h-12 bg-emerald-500 rounded-lg shadow-sm border border-emerald-600 text-sm font-bold text-white transform scale-105 transition'; } else { this.score = Math.max(0, this.score - 5); btn.className = 'h-12 bg-rose-500 rounded-lg shadow-sm border border-rose-600 text-sm font-bold text-white transform translate-x-1 transition'; setTimeout(() => btn.style.transform = 'translateX(-2px)', 100); } document.getElementById('emotion-score').textContent = this.score; setTimeout(() => this.generate(), 350); },
+            stop() { this.isActive = false; }, end() { this.stop(); app.updateGameProgress('emotion', this.level); app.showRewardScreen(this.score, 10); }
+        };
+
+        window.wordGame = {
+            score: 0, level: 1, isActive: false, sentences: [{ q: 'أنا أذهب إلى المدرسة لكي _____', a: 'أتعلم', wrong: ['أنام', 'ألعب'] }, { q: 'شربت _____ لأنني كنت عطشاناً', a: 'الماء', wrong: ['الكتاب', 'النوم'] }, { q: 'الجو بارد جداً لذلك لبست _____', a: 'معطفاً', wrong: ['نظارة', 'صندلاً'] }, { q: 'الطائر يستخدم جناحيه لكي _____', a: 'يطير', wrong: ['يسبح', 'يركض'] }, { q: 'ذهبت إلى الطبيب لأنني كنت _____', a: 'مريضاً', wrong: ['جائعاً', 'سعيداً'] }], currentAnswer: '',
+            start() { app.showScreen('screen-game-word', 'الكلمة المفقودة'); this.score = 0; this.level = app.gameProgress.word || 1; this.isActive = true; this.generate(); app.startGlobalTimer(app.currentGameConfig.timeLimit || 15, () => this.end()); },
+            generate() { if(!this.isActive) return; const sObj = this.sentences[Math.floor(Math.random() * this.sentences.length)]; this.currentAnswer = sObj.a; const display = document.getElementById('word-sentence-box'); document.getElementById('word-sentence').textContent = sObj.q; display.style.transform = 'scale(0.98)'; setTimeout(() => display.style.transform = 'scale(1)', 50); let options = [sObj.a, ...sObj.wrong].sort(() => 0.5 - Math.random()); const optsContainer = document.getElementById('word-options'); optsContainer.innerHTML = ''; options.forEach(opt => { const btn = document.createElement('button'); btn.className = 'py-2.5 bg-white rounded-lg shadow-sm border border-slate-200 text-sm font-bold text-slate-700 hover:bg-lime-50 hover:text-lime-600 hover:border-lime-200 transition transform hover:-translate-y-0.5 w-full'; btn.textContent = opt; btn.onclick = () => this.handleAnswer(opt, btn); optsContainer.appendChild(btn); }); },
+            handleAnswer(selected, btn) { if(!this.isActive) return; if(selected === this.currentAnswer) { this.score += 20; this.level = Math.min(10, Math.floor(this.score / 60) + 1); btn.className = 'py-2.5 bg-emerald-500 rounded-lg shadow-sm border border-emerald-600 text-sm font-bold text-white transform scale-105 transition w-full'; document.getElementById('word-sentence').innerHTML = document.getElementById('word-sentence').innerHTML.replace('_____', `<span class="text-emerald-500">${this.currentAnswer}</span>`); } else { this.score = Math.max(0, this.score - 5); btn.className = 'py-2.5 bg-rose-500 rounded-lg shadow-sm border border-rose-600 text-sm font-bold text-white transform translate-x-1 transition w-full'; } setTimeout(() => this.generate(), 400); },
+            stop() { this.isActive = false; }, end() { this.stop(); app.updateGameProgress('word', this.level); app.showRewardScreen(this.score, 10); }
+        };
+
+        window.associationGame = {
+            score: 0, level: 1, isActive: false, pairs: [{ w: 'مفتاح', a: 'قفل', wrong: ['شجرة', 'سحاب', 'كتاب'] }, { w: 'سيارة', a: 'طريق', wrong: ['بحر', 'سماء', 'نار'] }, { w: 'قلم', a: 'ورقة', wrong: ['حجر', 'شاشة', 'ماء'] }, { w: 'عصفور', a: 'ريش', wrong: ['حراشف', 'صوف', 'شعر'] }, { w: 'شمس', a: 'حرارة', wrong: ['ظلام', 'ثلج', 'مطر'] }], currentAnswer: '',
+            start() { app.showScreen('screen-game-association', 'رابط العجائب'); this.score = 0; this.level = app.gameProgress.association || 1; this.isActive = true; document.getElementById('assoc-score').textContent = this.score; this.generate(); app.startGlobalTimer(app.currentGameConfig.timeLimit || 15, () => this.end()); },
+            generate() { if(!this.isActive) return; const pObj = this.pairs[Math.floor(Math.random() * this.pairs.length)]; this.currentAnswer = pObj.a; const display = document.getElementById('assoc-main-box'); document.getElementById('assoc-main-word').textContent = pObj.w; display.style.transform = 'scale(0.9)'; setTimeout(() => display.style.transform = 'scale(1)', 50); let wOptions = [...pObj.wrong].sort(() => 0.5 - Math.random()).slice(0, 2); let options = [pObj.a, ...wOptions].sort(() => 0.5 - Math.random()); const optsContainer = document.getElementById('assoc-options'); optsContainer.innerHTML = ''; options.forEach(opt => { const btn = document.createElement('button'); btn.className = 'w-24 h-12 bg-white rounded-lg shadow-sm border border-slate-200 text-sm font-bold text-slate-700 hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 transition transform hover:-translate-y-0.5'; btn.textContent = opt; btn.onclick = () => this.handleAnswer(opt, btn); optsContainer.appendChild(btn); }); },
+            handleAnswer(selected, btn) { if(!this.isActive) return; if(selected === this.currentAnswer) { this.score += 15; this.level = Math.min(10, Math.floor(this.score / 60) + 1); btn.className = 'w-24 h-12 bg-emerald-500 rounded-lg shadow-sm border border-emerald-600 text-sm font-bold text-white transform scale-105 transition'; } else { this.score = Math.max(0, this.score - 5); btn.className = 'w-24 h-12 bg-rose-500 rounded-lg shadow-sm border border-rose-600 text-sm font-bold text-white transform translate-x-1 transition'; } document.getElementById('assoc-score').textContent = this.score; setTimeout(() => this.generate(), 350); },
+            stop() { this.isActive = false; }, end() { this.stop(); app.updateGameProgress('association', this.level); app.showRewardScreen(this.score, 10); }
+        };
+
+        // لعبة الفيديو التفاعلي
+        window.videoGame = {
+            isActive: false, score: 0,
+            start() {
+                app.showScreen('screen-game-video', 'فيديو تفاعلي');
+                this.isActive = true;
+                this.score = 0;
+                document.getElementById('video-overlay').classList.remove('hidden');
+                document.getElementById('video-quiz-section').classList.add('hidden');
+                
+                // جلب الرابط من الإعدادات أو وضع افتراضي
+                let url = app.currentGameConfig.mediaUrl || "https://www.youtube.com/embed/Y-yM14wT60k";
+                // تأكد من أن الرابط من نوع Embed
+                if(url.includes('watch?v=')) url = url.replace('watch?v=', 'embed/');
+                document.getElementById('video-iframe').src = url;
+            },
+            startVideo() {
+                document.getElementById('video-overlay').classList.add('hidden');
+                // تظهر الأسئلة بعد 5 ثواني من الضغط كتمثيل للمشاهدة
+                setTimeout(() => {
+                    if(this.isActive) {
+                        document.getElementById('video-quiz-section').classList.remove('hidden');
+                        document.getElementById('video-quiz-section').classList.add('flex');
+                        const opts = document.getElementById('video-options');
+                        opts.innerHTML = `
+                            <button onclick="videoGame.answer(true)" class="bg-white border border-slate-200 py-3 rounded-xl font-bold text-slate-700 hover:bg-blue-50 transition shadow-sm">المفتاح الضائع</button>
+                            <button onclick="videoGame.answer(false)" class="bg-white border border-slate-200 py-3 rounded-xl font-bold text-slate-700 hover:bg-blue-50 transition shadow-sm">كتاب العلوم</button>
+                        `;
+                    }
+                }, 5000);
+            },
+            answer(correct) {
+                if(!this.isActive) return;
+                this.score = correct ? 50 : 10;
+                this.end();
+            },
+            stop() { this.isActive = false; document.getElementById('video-iframe').src = ""; },
+            end() { this.stop(); app.updateGameProgress('video_quiz', app.gameProgress.video_quiz ? app.gameProgress.video_quiz + 1 : 1); app.showRewardScreen(this.score, 20); }
+        };
+
+        // لعبة المكالمة الصوتية
+        window.audioGame = {
+            isActive: false, score: 0,
+            start() {
+                app.showScreen('screen-game-audio', 'مكالمة الذاكرة');
+                this.isActive = true;
+                this.score = 0;
+                document.getElementById('btn-audio-play').classList.remove('hidden');
+                document.getElementById('audio-quiz-section').classList.add('hidden');
+                document.getElementById('audio-quiz-section').classList.remove('flex');
+                document.getElementById('audio-wave').classList.add('hidden');
+                
+                // جلب الصوت أو ملف تجريبي
+                let url = app.currentGameConfig.mediaUrl || "https://actions.google.com/sounds/v1/alarms/phone_ringing.ogg";
+                document.getElementById('audio-player').src = url;
+            },
+            playAudio() {
+                document.getElementById('btn-audio-play').classList.add('hidden');
+                document.getElementById('audio-wave').classList.remove('hidden');
+                document.getElementById('audio-player').play();
+                
+                // تظهر الأسئلة بعد 4 ثواني
+                setTimeout(() => {
+                    if(this.isActive) {
+                        document.getElementById('audio-quiz-section').classList.remove('hidden');
+                        document.getElementById('audio-quiz-section').classList.add('flex');
+                        const opts = document.getElementById('audio-options');
+                        opts.innerHTML = `
+                            <button onclick="audioGame.answer(true)" class="bg-slate-700 border border-slate-600 py-3 rounded-xl font-bold text-white hover:bg-emerald-600 transition shadow-sm">الساعة 4 عصراً</button>
+                            <button onclick="audioGame.answer(false)" class="bg-slate-700 border border-slate-600 py-3 rounded-xl font-bold text-white hover:bg-emerald-600 transition shadow-sm">الساعة 6 مساءً</button>
+                        `;
+                    }
+                }, 4000);
+            },
+            answer(correct) {
+                if(!this.isActive) return;
+                this.score = correct ? 40 : 10;
+                this.end();
+            },
+            stop() { this.isActive = false; document.getElementById('audio-player').pause(); },
+            end() { this.stop(); app.updateGameProgress('audio_call', app.gameProgress.audio_call ? app.gameProgress.audio_call + 1 : 1); app.showRewardScreen(this.score, 15); }
+        };
+
+    </script>
+</body>
+</html>
