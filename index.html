@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نبيه | التدريب الذهني والألعاب</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -52,7 +52,6 @@
         .screen.active { display: flex; opacity: 1; }
         .progress-bar-fill { transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* Game Elements */
         .keypad-btn { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0.75rem; color: #334155; font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; transition: all 0.1s; cursor: pointer; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.05); }
         .keypad-btn:active { transform: scale(0.95); background: #e2e8f0; box-shadow: none; }
         .keypad-btn.flash { background: #4f46e5; color: white; border-color: #4338ca; box-shadow: 0 0 15px rgba(79,70,229,0.5); transform: scale(1.02); }
@@ -71,6 +70,10 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         
         .bg-shapes { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; opacity: 0.4; background: radial-gradient(circle at 10% 20%, rgba(20, 184, 166, 0.05) 0%, transparent 20%), radial-gradient(circle at 90% 80%, rgba(79, 70, 229, 0.05) 0%, transparent 20%); }
+
+        .rank-item.locked { opacity: 0.6; filter: grayscale(100%); }
+        .rank-item.current { border: 1px solid #14b8a6; background: #f0fdfa; transform: scale(1.01); }
+        
         .game-target { position: absolute; transform: translate(-50%, -50%); transition: transform 0.1s; }
         .game-target:active { transform: translate(-50%, -50%) scale(0.85); }
     </style>
@@ -87,28 +90,24 @@
                     <i class="fa-solid fa-gamepad"></i>
                 </div>
                 <h1 class="text-2xl font-black text-slate-800 tracking-tight">التدريب الذهني</h1>
-                <p class="text-sm text-slate-500 font-bold mt-1">أدخل رقم جوال ولي الأمر للبدء</p>
+                <p class="text-sm text-slate-500 font-bold mt-1">أدخل اسم المستخدم أو رقم الجوال للبدء</p>
             </div>
             
             <form onsubmit="app.login(event)" class="space-y-5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1.5"><i class="fa-solid fa-phone text-slate-400 ml-1"></i> رقم الجوال المسجل</label>
-                    <input type="tel" id="loginPhone" required dir="ltr" class="w-full bg-slate-50 border border-slate-200 px-4 py-3.5 rounded-xl text-sm font-bold text-right outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition" placeholder="05XXXXXXXX">
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5"><i class="fa-solid fa-user text-slate-400 ml-1"></i> اسم المستخدم أو رقم الجوال</label>
+                    <input type="text" id="loginInput" required class="w-full bg-slate-50 border border-slate-200 px-4 py-3.5 rounded-xl text-sm font-bold text-right outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition" placeholder="أدخل الاسم أو رقم الجوال">
                 </div>
+                
                 <button type="submit" id="loginBtn" class="w-full py-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-black text-sm shadow-lg shadow-brand-500/30 transition flex items-center justify-center gap-2 mt-4">
                     دخول المنصة <i class="fa-solid fa-arrow-left mt-0.5"></i>
                 </button>
             </form>
-            <div class="mt-4 text-center">
-                <p class="text-[10px] text-slate-400 font-bold">بوابة الألعاب مربوطة حياً بقاعدة بيانات نبيه لتحليل الإنجاز.</p>
-            </div>
         </div>
     </div>
 
-
     <!-- ==================== MAIN DASHBOARD ==================== -->
     <div id="screen-dashboard" class="screen relative z-10 overflow-y-auto">
-        
         <header class="p-3 md:p-4 flex flex-col gap-3 sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
             <div class="flex items-center justify-between max-w-7xl mx-auto w-full">
                 <div class="flex items-center gap-3">
@@ -143,9 +142,7 @@
         </header>
 
         <main class="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 flex flex-col pt-6 pb-20">
-            
             <div class="flex flex-col md:flex-row w-full gap-4 md:gap-6 mb-8">
-                
                 <div class="flex-1 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden flex flex-col justify-center">
                     <div id="status-bg-pulse" class="absolute inset-0 bg-rose-50/30 animate-pulse pointer-events-none"></div>
                     <div class="relative z-10 flex justify-between items-center mb-3">
@@ -165,7 +162,6 @@
 
                 <div class="w-full md:w-[35%] bg-white p-4 rounded-2xl shadow-sm border border-slate-200 relative flex flex-col items-center justify-center min-h-[160px] overflow-hidden">
                     <div id="main-brain-aura" class="absolute inset-0 bg-emerald-50 rounded-2xl blur-[30px] opacity-50 animate-pulse-soft pointer-events-none"></div>
-                    
                     <div class="text-center mb-2 z-10">
                         <h4 class="text-xs font-black text-slate-700">دماغك ينمو ويتطور <i class="fa-solid fa-arrow-trend-up text-emerald-500"></i></h4>
                         <p class="text-[9px] text-slate-400 mt-0.5">اضغط على الدماغ لاكتساب نقطة نمو</p>
@@ -193,13 +189,11 @@
                 </div>
             </div>
 
-            <!-- ==================== UNITS GROUP PROGRESS & GRID ==================== -->
             <div class="w-full mb-6">
-                <!-- Group Header & Progress -->
                 <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm mb-5 flex flex-col md:flex-row justify-between items-center gap-4">
                     <div class="w-full md:w-auto flex-1">
                         <h3 class="text-lg md:text-xl font-bold text-slate-800"><i class="fa-solid fa-layer-group text-brand-500 ml-1"></i> مسار المعرفة (<span id="group-index-text">1</span>)</h3>
-                        <p class="text-[10px] md:text-xs text-slate-500 mt-1">أكمل 70% لفتح المجموعة التالية.</p>
+                        <p class="text-[10px] md:text-xs text-slate-500 mt-1">أكمل 70% من هذه المجموعة لفتح التحديات المتقدمة.</p>
                         
                         <div class="w-full mt-3">
                             <div class="flex justify-between text-[10px] font-bold text-slate-600 mb-1.5">
@@ -218,7 +212,6 @@
                     </div>
                 </div>
 
-                <!-- Grid -->
                 <div id="units-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 w-full relative z-10 items-start">
                     <div class="text-center py-10 bg-white rounded-2xl border border-slate-200 border-dashed col-span-1 md:col-span-2">
                         <i class="fa-solid fa-spinner animate-spin text-3xl text-brand-500 mb-3"></i>
@@ -226,11 +219,10 @@
                     </div>
                 </div>
             </div>
-
         </main>
     </div>
 
-    <!-- ==================== OPEN UNIT CONFIRMATION MODAL ==================== -->
+    <!-- ==================== MODALS ==================== -->
     <div id="modal-confirm-open" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-xl transform scale-95 transition-transform" id="modal-confirm-content">
             <div class="text-5xl text-brand-500 mb-4 animate-pulse-soft"><i class="fa-solid fa-cube"></i></div>
@@ -243,7 +235,6 @@
         </div>
     </div>
 
-    <!-- ==================== LEVELS MAP MODAL ==================== -->
     <div id="modal-level-info" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl relative overflow-hidden transform scale-95 transition-transform flex flex-col max-h-[85vh]" id="modal-level-content">
             <button onclick="app.closeLevelModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center transition z-10"><i class="fa-solid fa-xmark"></i></button>
@@ -258,7 +249,6 @@
         </div>
     </div>
 
-    <!-- ==================== UNIVERSAL GAME HEADER ==================== -->
     <div id="game-header" class="fixed top-0 left-0 w-full p-3 flex justify-between items-start z-40 hidden pointer-events-none">
         <div class="bg-white/95 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-200 flex flex-col items-center pointer-events-auto shadow-sm min-w-[60px]" id="timer-container">
             <span class="text-[8px] text-slate-400 font-bold uppercase tracking-widest">الوقت</span>
@@ -276,33 +266,19 @@
     </div>
 
     <!-- ==================== GAMES SCREENS ==================== -->
-    
-    <!-- 1. REACTION -->
     <div id="screen-game-reaction" class="screen relative z-20 bg-slate-900"><div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(white 1px, transparent 1px); background-size: 40px 40px;"></div><div id="reaction-area" class="flex-1 w-full h-full relative cursor-crosshair overflow-hidden"></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none flex items-center gap-2 z-30 whitespace-nowrap"><i class="fa-solid fa-bolt text-amber-500"></i><span class="text-xs text-slate-600 font-bold">الطاقة:</span><span id="reaction-score" class="text-sm font-black text-slate-800">0</span></div></div>
-    <!-- 2. MEMORY -->
     <div id="screen-game-memory" class="screen relative z-20 flex-col items-center justify-center bg-slate-50 px-4"><div class="text-center mb-5 relative z-30 bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-200 w-full max-w-xs"><div class="text-slate-400 text-[10px] font-bold mb-1 uppercase tracking-widest"><i class="fa-solid fa-lock"></i> شفرة الخزنة</div><p id="memory-msg" class="text-xl font-black tracking-[0.4em] text-slate-700 h-8">***</p></div><div class="grid grid-cols-3 gap-2 md:gap-3 relative z-30 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm w-full max-w-xs aspect-square" id="memory-keypad"></div></div>
-    <!-- 3. FLEXIBILITY -->
     <div id="screen-game-flex" class="screen relative z-20 flex-col items-center justify-between pb-8 pt-20 bg-slate-50"><div class="text-center w-full px-4 relative z-30"><div id="flex-rule-box" class="bg-white border border-emerald-300 rounded-full py-2 px-5 inline-block transition-all shadow-sm"><h2 id="flex-rule-text" class="text-sm md:text-base font-bold text-emerald-600"><i class="fa-solid fa-arrow-right-arrow-left"></i> طابق اللون</h2></div></div><div class="flex-1 w-full flex items-center justify-center relative z-20"><div id="flex-item" class="w-24 h-24 rounded-2xl shadow-sm flex items-center justify-center text-4xl transition-transform border-2 border-white"><i class="fa-solid fa-shapes text-white/60"></i></div></div><div class="w-full max-w-lg mx-auto flex justify-between px-4 gap-3 relative z-30"><button onclick="flexGame.handleSort('blue')" class="flex-1 h-24 rounded-2xl border-2 border-blue-400 bg-white flex flex-col items-center justify-center gap-1 hover:bg-blue-50 transition shadow-sm"><i class="fa-solid fa-door-open text-2xl text-blue-500"></i><span class="font-bold text-blue-600 text-xs">بوابة زرقاء</span></button><button onclick="flexGame.handleSort('red')" class="flex-1 h-24 rounded-2xl border-2 border-rose-400 bg-white flex flex-col items-center justify-center gap-1 hover:bg-rose-50 transition shadow-sm"><i class="fa-solid fa-door-open text-2xl text-rose-500"></i><span class="font-bold text-rose-600 text-xs">بوابة حمراء</span></button></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-star text-emerald-500"></i><span class="text-xs text-slate-500 font-bold">النقاط:</span><span id="flex-score" class="text-sm font-black text-slate-800">0</span></div></div>
-    <!-- 4. STROOP -->
     <div id="screen-game-stroop" class="screen relative z-20 flex-col items-center justify-center bg-slate-50"><div class="text-center mb-8 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm max-w-[90%]"><p class="text-[10px] font-bold text-slate-400">القاعدة:</p><h3 class="text-base font-bold text-slate-700">اختر <span class="text-rose-500">لون الخط</span> وليس الكلمة!</h3></div><div class="flex-1 flex items-center justify-center w-full"><h1 id="stroop-word" class="text-5xl md:text-7xl font-black tracking-wider transition-all">أحمر</h1></div><div id="stroop-options" class="w-full max-w-lg mx-auto flex flex-wrap justify-center gap-2 px-4 pb-16"></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-bolt text-rose-500"></i><span class="text-xs text-slate-500 font-bold">الطاقة:</span><span id="stroop-score" class="text-sm font-black text-slate-800">0</span></div></div>
-    <!-- 5. MATRIX -->
     <div id="screen-game-matrix" class="screen relative z-20 flex-col items-center justify-center bg-slate-50 px-4"><div class="text-center mb-5 relative z-30"><p id="matrix-msg" class="text-sm font-bold text-cyan-600 h-6">راقب المربعات المضيئة...</p></div><div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm w-full max-w-[260px] aspect-square flex items-center justify-center"><div id="matrix-grid" class="grid gap-1.5 w-full h-full"></div></div></div>
-    <!-- 6. MATH -->
     <div id="screen-game-math" class="screen relative z-20 flex-col items-center justify-center bg-slate-50"><div class="text-center mb-6 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm"><h3 class="text-base font-bold text-slate-700">هل هذه المعادلة صحيحة؟</h3></div><div class="flex-1 flex items-center justify-center w-full px-4"><div class="bg-white border-2 border-indigo-200 rounded-2xl px-6 py-6 shadow-sm text-center transition-transform w-full max-w-xs" id="math-equation-box"><h1 id="math-equation" class="text-3xl font-black text-slate-800" dir="ltr">5 + 4 = 9</h1></div></div><div class="w-full max-w-md mx-auto flex justify-center gap-3 px-4 pb-16"><button onclick="mathGame.handleAnswer(true)" class="w-24 h-24 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white flex flex-col items-center justify-center gap-1 shadow-sm transition"><i class="fa-solid fa-check text-2xl"></i><span class="font-bold text-sm">صحيح</span></button><button onclick="mathGame.handleAnswer(false)" class="w-24 h-24 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white flex flex-col items-center justify-center gap-1 shadow-sm transition"><i class="fa-solid fa-xmark text-2xl"></i><span class="font-bold text-sm">خاطئ</span></button></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-calculator text-indigo-500"></i><span class="text-xs text-slate-500 font-bold">النقاط:</span><span id="math-score" class="text-sm font-black text-slate-800">0</span></div></div>
-    <!-- 7. VISUAL -->
     <div id="screen-game-visual" class="screen relative z-20 flex-col items-center justify-center bg-slate-50 px-4"><div class="text-center mb-5 relative z-30 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm"><p class="text-sm font-bold text-amber-600">ابحث عن الشكل المختلف!</p></div><div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm mb-12 w-full max-w-[280px] aspect-square flex items-center justify-center"><div id="visual-grid" class="w-full h-full"></div></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-eye text-amber-500"></i><span class="text-xs text-slate-500 font-bold">النقاط:</span><span id="visual-score" class="text-sm font-black text-slate-800">0</span></div></div>
-    <!-- 8. SCHULTE -->
     <div id="screen-game-schulte" class="screen relative z-20 flex-col items-center justify-center bg-slate-50 px-4"><div class="text-center mb-5 relative z-30 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm flex items-center justify-center gap-2 w-full max-w-[200px]"><p class="text-xs font-bold text-teal-600">التالي:</p><span id="schulte-target" class="text-base font-black text-slate-800 bg-slate-100 px-2 rounded border border-slate-200">1</span></div><div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm mb-12 w-full max-w-[280px] aspect-square flex items-center justify-center"><div id="schulte-grid" class="w-full h-full gap-1.5 grid"></div></div></div>
-    <!-- 9. PATTERN -->
     <div id="screen-game-pattern" class="screen relative z-20 flex-col items-center justify-center bg-slate-50"><div class="text-center mb-6 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm"><h3 class="text-base font-bold text-slate-700">اكتشف النمط الناقص</h3></div><div class="flex-1 flex flex-col items-center justify-center w-full px-4"><div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm mb-8 flex items-center justify-center gap-2 text-2xl w-full max-w-md" id="pattern-display" dir="ltr"></div><div id="pattern-options" class="w-full max-w-sm mx-auto grid grid-cols-3 gap-2"></div></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-puzzle-piece text-pink-500"></i><span class="text-xs text-slate-500 font-bold">النقاط:</span><span id="pattern-score" class="text-sm font-black text-slate-800">0</span></div></div>
-    <!-- 10. EMOTION -->
     <div id="screen-game-emotion" class="screen relative z-20 flex-col items-center justify-center bg-slate-50"><div class="text-center mb-6 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm"><h3 class="text-base font-bold text-slate-700">ما هو الشعور الصحيح؟</h3></div><div class="flex-1 flex items-center justify-center w-full"><div class="text-[5rem] drop-shadow-sm transition-transform" id="emotion-display">😀</div></div><div id="emotion-options" class="w-full max-w-md mx-auto grid grid-cols-2 gap-3 px-4 pb-16"></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-face-smile text-fuchsia-500"></i><span class="text-xs text-slate-500 font-bold">النقاط:</span><span id="emotion-score" class="text-sm font-black text-slate-800">0</span></div></div>
-    <!-- 11. WORD -->
     <div id="screen-game-word" class="screen relative z-20 flex-col items-center justify-center bg-slate-50"><div class="text-center mb-6 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm"><h3 class="text-base font-bold text-slate-700">أكمل الجملة</h3></div><div class="flex-1 flex items-center justify-center w-full px-4"><div class="bg-white border-2 border-lime-200 rounded-2xl px-5 py-6 shadow-sm text-center w-full max-w-lg" id="word-sentence-box"><h1 id="word-sentence" class="text-lg font-bold text-slate-800 leading-relaxed">أنا أذهب إلى المدرسة لكي _____</h1></div></div><div id="word-options" class="w-full max-w-lg mx-auto grid grid-cols-1 sm:grid-cols-3 gap-2 px-4 pb-16"></div></div>
-    <!-- 12. ASSOCIATION -->
     <div id="screen-game-association" class="screen relative z-20 flex-col items-center justify-center bg-slate-50"><div class="text-center mb-6 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm"><h3 class="text-base font-bold text-slate-700">الكلمة المرتبطة منطقياً؟</h3></div><div class="flex-1 flex items-center justify-center w-full"><div class="bg-white rounded-full w-28 h-28 border-4 border-violet-100 shadow-sm flex items-center justify-center" id="assoc-main-box"><h1 id="assoc-main-word" class="text-xl font-black text-violet-600">مفتاح</h1></div></div><div id="assoc-options" class="w-full max-w-md mx-auto flex flex-wrap justify-center gap-2 px-4 pb-16"></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-link text-violet-500"></i><span class="text-xs text-slate-500 font-bold">النقاط:</span><span id="assoc-score" class="text-sm font-black text-slate-800">0</span></div></div>
 
-    <!-- NEW: VIDEO QUIZ -->
     <div id="screen-game-video" class="screen relative z-20 flex-col items-center justify-center bg-slate-50 px-4 pt-16 pb-20">
         <div class="w-full max-w-2xl bg-black rounded-2xl shadow-xl overflow-hidden mb-6 aspect-video flex items-center justify-center text-white relative">
             <iframe id="video-iframe" class="w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -318,7 +294,6 @@
         </div>
     </div>
 
-    <!-- NEW: AUDIO CALL -->
     <div id="screen-game-audio" class="screen relative z-20 flex-col items-center justify-center bg-slate-900 px-4">
         <div class="w-full max-w-sm bg-slate-800 border border-slate-700 rounded-[2rem] p-6 flex flex-col items-center relative overflow-hidden shadow-2xl">
             <div id="audio-wave" class="absolute inset-0 opacity-20 pointer-events-none hidden" style="background: repeating-radial-gradient(circle, #10b981 0, transparent 20%); background-size: 100px 100px; animation: pulseSoft 2s infinite;"></div>
@@ -337,8 +312,6 @@
         </div>
     </div>
 
-
-    <!-- ==================== REWARD SCREEN ==================== -->
     <div id="screen-reward" class="absolute inset-0 bg-white/95 backdrop-blur-sm z-[100] flex-col items-center justify-center hidden">
         <div class="w-16 h-16 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-3xl mb-3 shadow-sm border border-amber-100"><i class="fa-solid fa-star"></i></div>
         <h2 class="text-2xl font-black text-slate-800 mb-4">أداء ممتاز!</h2>
@@ -354,11 +327,10 @@
         </button>
     </div>
 
-
     <!-- FIREBASE DB LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBzNJ4BUm2-uzUXlrNd8tg4M5OLzu1GOjg",
@@ -372,7 +344,6 @@
         const fApp = initializeApp(firebaseConfig);
         const db = getFirestore(fApp);
 
-        // Core App Logic Linked to Cloud
         window.app = {
             studentDocId: null, studentData: null,
             totalEnergy: 0, level: 1, xpForNextLevel: 500, dailyCharge: 15, globalTimer: null, timeRemaining: 0, pendingEnergy: 0, pendingCharge: 0,
@@ -382,7 +353,6 @@
             ranks: [ { lvl: 1, name: 'شبل مبتدئ' }, { lvl: 2, name: 'مكتشف صغير' }, { lvl: 3, name: 'لمّاح' }, { lvl: 4, name: 'فطن' }, { lvl: 5, name: 'ذكي' }, { lvl: 6, name: 'موهوب' } ],
             unitsPerPage: 4, currentUnitPage: 0, units: [],
             
-            // إضافة الألعاب الجديدة للقائمة المتاحة
             lessonsData: {
                 reaction: { title: 'صائد النجوم', icon: 'fa-meteor', color: 'amber', action: 'reactionGame.start()' },
                 memory: { title: 'شفرة الخزنة', icon: 'fa-lock', color: 'purple', action: 'memoryGame.start()' },
@@ -399,24 +369,38 @@
                 video_quiz: { title: 'فيديو تفاعلي', icon: 'fa-file-video', color: 'blue', action: 'videoGame.start()' },
                 audio_call: { title: 'مكالمة صوتية', icon: 'fa-phone-volume', color: 'emerald', action: 'audioGame.start()' }
             },
-            currentGameConfig: null, // للإعدادات الديناميكية المستوردة من السحابة
+            currentGameConfig: null,
 
-            // 1. Cloud Login
             async login(e) {
                 e.preventDefault();
-                const phoneInput = document.getElementById('loginPhone').value.trim();
+                const inputVal = document.getElementById('loginInput').value.trim();
                 const btn = document.getElementById('loginBtn');
                 const originalTxt = btn.innerHTML;
 
-                if(!phoneInput) return;
+                if(!inputVal) return;
                 btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> جاري البحث عن ملفك...';
 
                 try {
-                    const q = query(collection(db, "students"), where("parentPhone", "==", phoneInput));
-                    const snap = await getDocs(q);
+                    let snap = null;
+
+                    // 1. البحث برقم الجوال
+                    let q = query(collection(db, "students"), where("parentPhone", "==", inputVal));
+                    snap = await getDocs(q);
+
+                    // 2. البحث بالاسم الصريح
+                    if (snap.empty) {
+                        q = query(collection(db, "students"), where("name", "==", inputVal));
+                        snap = await getDocs(q);
+                    }
+
+                    // 3. البحث باسم المستخدم
+                    if (snap.empty) {
+                        q = query(collection(db, "students"), where("username", "==", inputVal));
+                        snap = await getDocs(q);
+                    }
 
                     if (snap.empty) {
-                        alert("رقم الجوال غير مسجل. يرجى الاشتراك من البوابة الرئيسية.");
+                        alert("لم يتم العثور على الحساب. يرجى التحقق من رقم الجوال أو اسم المستخدم.");
                         btn.innerHTML = originalTxt;
                         return;
                     }
@@ -428,7 +412,7 @@
                     if(this.studentData.totalEnergy) this.totalEnergy = this.studentData.totalEnergy;
                     if(this.studentData.gameProgress) this.gameProgress = { ...this.gameProgress, ...this.studentData.gameProgress };
                     
-                    document.getElementById('student-name-display').textContent = this.studentData.name;
+                    document.getElementById('student-name-display').textContent = this.studentData.name || inputVal;
                     btn.innerHTML = '<i class="fa-solid fa-check"></i> تم الدخول بنجاح';
                     btn.classList.replace('bg-brand-600', 'bg-emerald-500');
                     
@@ -445,7 +429,6 @@
                 }
             },
 
-            // 2. Cloud Sync
             async saveProgressToCloud() {
                 if(!this.studentDocId) return;
                 try {
@@ -460,16 +443,44 @@
             },
 
             async init() { 
-                // جلب الوحدات (CMS) من قاعدة بيانات الإدارة
                 try {
-                    const snap = await getDocs(collection(db, "units"));
+                    const gamesSnap = await getDocs(collection(db, "games_library"));
+                    gamesSnap.forEach(d => {
+                        const data = d.data();
+                        const key = data.key || d.id;
+                        let defaultAction = 'reactionGame.start()';
+                        if(key.includes('memory')) defaultAction = 'memoryGame.start()';
+                        else if(key.includes('flex')) defaultAction = 'flexGame.start()';
+                        else if(key.includes('stroop')) defaultAction = 'stroopGame.start()';
+                        else if(key.includes('matrix')) defaultAction = 'matrixGame.start()';
+                        else if(key.includes('math')) defaultAction = 'mathGame.start()';
+                        else if(key.includes('visual')) defaultAction = 'visualGame.start()';
+                        else if(key.includes('schulte')) defaultAction = 'schulteGame.start()';
+                        else if(key.includes('pattern')) defaultAction = 'patternGame.start()';
+                        else if(key.includes('emotion')) defaultAction = 'emotionGame.start()';
+                        else if(key.includes('word')) defaultAction = 'wordGame.start()';
+                        else if(key.includes('association')) defaultAction = 'associationGame.start()';
+                        else if(key.includes('video') || (data.media && data.media.includes('youtube'))) defaultAction = 'videoGame.start()';
+                        else if(key.includes('audio') || (data.media && data.media.includes('storage'))) defaultAction = 'audioGame.start()';
+
+                        if(!this.lessonsData[key]) {
+                            this.lessonsData[key] = { title: data.title || key, icon: data.icon || 'fa-gamepad', color: data.color || 'brand', action: defaultAction };
+                        } else {
+                            this.lessonsData[key].title = data.title || this.lessonsData[key].title;
+                            this.lessonsData[key].icon = data.icon || this.lessonsData[key].icon;
+                            this.lessonsData[key].color = data.color || this.lessonsData[key].color;
+                        }
+                    });
+                } catch(err) { console.error("Error syncing games library:", err); }
+
+                const q = query(collection(db, "units"));
+                onSnapshot(q, (snap) => {
                     if(!snap.empty) {
-                        // تصفية وعرض الوحدات المفعلة فقط وترتيبها
                         this.units = snap.docs.map(d => d.data()).filter(u => u.status === 'active').sort((a,b) => a.id - b.id);
+                        this.updateUI(); 
+                        this.renderUnits(); 
                     }
-                    this.updateUI(); 
-                    this.renderUnits(); 
-                } catch(e) { console.error(e); }
+                });
             },
 
             getUnitProgress(unitId) {
@@ -570,8 +581,7 @@
                             cardHTML += `<div class="mt-4 pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-2 animate-fade-in" onclick="event.stopPropagation()">`;
                             if(u.games) {
                                 u.games.forEach((gameObj, index) => {
-                                    const lesson = this.lessonsData[gameObj.key];
-                                    if(!lesson) return;
+                                    const lesson = this.lessonsData[gameObj.key] || { title: gameObj.key, icon: 'fa-gamepad', color: 'brand', action: 'reactionGame.start()' };
                                     const gLevel = this.gameProgress[gameObj.key] || 1;
                                     const gProgressPercent = Math.min(100, (gLevel / 10) * 100);
                                     
@@ -622,13 +632,14 @@
             nextUnitPage() { if ((this.currentUnitPage + 1) * this.unitsPerPage < this.units.length) { this.expandedUnit = null; this.currentUnitPage++; this.renderUnits(); } },
             prevUnitPage() { if (this.currentUnitPage > 0) { this.expandedUnit = null; this.currentUnitPage--; this.renderUnits(); } },
             
-            // قراءة الإعدادات الديناميكية من الـ CMS
             playGame(unitId, gameIndex) { 
                 const unit = this.units.find(u => u.id === unitId);
                 const gameConfig = unit.games[gameIndex];
                 this.currentGameConfig = gameConfig; 
                 this.activeGameKey = gameConfig.key;
-                eval(this.lessonsData[gameConfig.key].action); 
+                const lesson = this.lessonsData[gameConfig.key];
+                const actionToRun = lesson ? lesson.action : 'reactionGame.start()';
+                eval(actionToRun); 
             },
             
             updateGameProgress(gameKey, newLevel) { 
@@ -703,15 +714,14 @@
                 this.dailyCharge = Math.min(100, this.dailyCharge + this.pendingCharge);
                 this.updateUI(); 
                 this.renderUnits(); 
-                this.saveProgressToCloud();
+                this.saveProgressToCloud(); 
                 this.showScreen('screen-dashboard');
             }
         };
 
         document.getElementById('btn-confirm-open').addEventListener('click', () => app.executeOpenUnit());
 
-        // ==================== GAMES LOGIC (DYNAMIC SPEED & TIME) ====================
-        
+        // الألعاب ومحركاتها
         window.reactionGame = {
             score: 0, level: 1, targetTimeout: null, isActive: false,
             start() { 
@@ -725,8 +735,6 @@
                 target.style.left = `${x}%`; target.style.top = `${y}%`; target.innerHTML = '<i class="fa-solid fa-star pointer-events-none"></i>'; 
                 target.onpointerdown = (e) => { e.preventDefault(); if(!this.isActive) return; this.score += 15; this.level = Math.min(10, Math.floor(this.score / 50) + 1); document.getElementById('reaction-score').textContent = this.score; target.remove(); clearTimeout(this.targetTimeout); this.spawn(); }; 
                 area.appendChild(target); 
-                
-                // Dynamic Speed Multiplier from CMS
                 const multiplier = app.currentGameConfig.speed || 1.0;
                 const speed = Math.max(500, (2000 - (this.level * 100)) / multiplier); 
                 this.targetTimeout = setTimeout(() => { if (target.parentNode) { target.remove(); this.spawn(); } }, speed); 
@@ -745,7 +753,6 @@
                 const multiplier = app.currentGameConfig.speed || 1.0;
                 const flashTime = Math.max(200, (800 - (this.level * 40)) / multiplier); 
                 const stepTime = flashTime + (150 / multiplier); 
-                
                 this.sequence.forEach((btnIndex) => { setTimeout(() => { this.flashButton(btnIndex, flashTime); }, delay); delay += stepTime; }); 
                 setTimeout(() => { this.canInput = true; document.getElementById('memory-msg').className = 'text-xl font-black tracking-[0.4em] text-brand-600 h-8'; }, delay + 200); 
             },
@@ -766,7 +773,6 @@
             handleSort(gateColor) { 
                 if(!this.isActive) return; const isCorrect = (!this.isReversed) ? (gateColor === this.currentItemColor) : (gateColor !== this.currentItemColor); const item = document.getElementById('flex-item'); 
                 if(isCorrect) { this.score += 20; this.level = Math.min(10, Math.floor(this.score / 60) + 1); document.getElementById('flex-score').textContent = this.score; item.style.transform = gateColor === 'blue' ? 'translateX(100px) scale(0)' : 'translateX(-100px) scale(0)'; } else { this.score = Math.max(0, this.score - 10); document.getElementById('flex-score').textContent = this.score; item.style.transform = 'translateX(15px)'; setTimeout(() => item.style.transform = 'translateX(-15px)', 100); setTimeout(() => item.style.transform = 'translateX(0)', 200); } 
-                
                 const multiplier = app.currentGameConfig.speed || 1.0;
                 setTimeout(() => this.spawnItem(), Math.max(100, (300 - (this.level * 15)) / multiplier)); 
             },
@@ -787,7 +793,6 @@
             start() { app.showScreen('screen-game-matrix', 'مصفوفة التركيز'); this.level = app.gameProgress.matrix || 1; this.isActive = true; this.setupLevel(); },
             setupLevel() { 
                 if(!this.isActive) return; this.gridSize = 3; this.targetCount = 2 + Math.floor(this.level/3); if(this.level > 5) this.gridSize = 4; if(this.level > 8) this.gridSize = 5; this.sequence = []; this.playerPicks = 0; this.canInput = false; const grid = document.getElementById('matrix-grid'); grid.style.gridTemplateColumns = `repeat(${this.gridSize}, minmax(0, 1fr))`; grid.innerHTML = ''; const totalCells = this.gridSize * this.gridSize; while(this.sequence.length < this.targetCount) { const r = Math.floor(Math.random() * totalCells); if(!this.sequence.includes(r)) this.sequence.push(r); } for(let i=0; i<totalCells; i++) { const cell = document.createElement('div'); cell.className = 'matrix-cell w-full h-full aspect-square'; cell.onclick = () => this.handleCellClick(cell, i); grid.appendChild(cell); } document.getElementById('matrix-msg').textContent = 'راقب المربعات...'; document.getElementById('matrix-msg').className = 'text-sm font-bold text-cyan-600 h-6 animate-pulse'; 
-                
                 const multiplier = app.currentGameConfig.speed || 1.0;
                 setTimeout(() => { this.sequence.forEach(index => grid.children[index].classList.add('flash')); setTimeout(() => { this.sequence.forEach(index => grid.children[index].classList.remove('flash')); this.canInput = true; document.getElementById('matrix-msg').textContent = 'أين كانت؟'; document.getElementById('matrix-msg').className = 'text-sm font-bold text-brand-600 h-6'; }, Math.max(300, (1500 - (this.level * 80))/multiplier)); }, 800); 
             },
@@ -851,7 +856,6 @@
             stop() { this.isActive = false; }, end() { this.stop(); app.updateGameProgress('association', this.level); app.showRewardScreen(this.score, 10); }
         };
 
-        // لعبة الفيديو التفاعلي
         window.videoGame = {
             isActive: false, score: 0,
             start() {
@@ -860,16 +864,12 @@
                 this.score = 0;
                 document.getElementById('video-overlay').classList.remove('hidden');
                 document.getElementById('video-quiz-section').classList.add('hidden');
-                
-                // جلب الرابط من الإعدادات أو وضع افتراضي
-                let url = app.currentGameConfig.mediaUrl || "https://www.youtube.com/embed/Y-yM14wT60k";
-                // تأكد من أن الرابط من نوع Embed
+                let url = (app.currentGameConfig && app.currentGameConfig.mediaUrl) ? app.currentGameConfig.mediaUrl : "https://www.youtube.com/embed/Y-yM14wT60k";
                 if(url.includes('watch?v=')) url = url.replace('watch?v=', 'embed/');
                 document.getElementById('video-iframe').src = url;
             },
             startVideo() {
                 document.getElementById('video-overlay').classList.add('hidden');
-                // تظهر الأسئلة بعد 5 ثواني من الضغط كتمثيل للمشاهدة
                 setTimeout(() => {
                     if(this.isActive) {
                         document.getElementById('video-quiz-section').classList.remove('hidden');
@@ -891,7 +891,6 @@
             end() { this.stop(); app.updateGameProgress('video_quiz', app.gameProgress.video_quiz ? app.gameProgress.video_quiz + 1 : 1); app.showRewardScreen(this.score, 20); }
         };
 
-        // لعبة المكالمة الصوتية
         window.audioGame = {
             isActive: false, score: 0,
             start() {
@@ -902,17 +901,13 @@
                 document.getElementById('audio-quiz-section').classList.add('hidden');
                 document.getElementById('audio-quiz-section').classList.remove('flex');
                 document.getElementById('audio-wave').classList.add('hidden');
-                
-                // جلب الصوت أو ملف تجريبي
-                let url = app.currentGameConfig.mediaUrl || "https://actions.google.com/sounds/v1/alarms/phone_ringing.ogg";
+                let url = (app.currentGameConfig && app.currentGameConfig.mediaUrl) ? app.currentGameConfig.mediaUrl : "https://actions.google.com/sounds/v1/alarms/phone_ringing.ogg";
                 document.getElementById('audio-player').src = url;
             },
             playAudio() {
                 document.getElementById('btn-audio-play').classList.add('hidden');
                 document.getElementById('audio-wave').classList.remove('hidden');
                 document.getElementById('audio-player').play();
-                
-                // تظهر الأسئلة بعد 4 ثواني
                 setTimeout(() => {
                     if(this.isActive) {
                         document.getElementById('audio-quiz-section').classList.remove('hidden');
@@ -933,7 +928,6 @@
             stop() { this.isActive = false; document.getElementById('audio-player').pause(); },
             end() { this.stop(); app.updateGameProgress('audio_call', app.gameProgress.audio_call ? app.gameProgress.audio_call + 1 : 1); app.showRewardScreen(this.score, 15); }
         };
-
     </script>
 </body>
 </html>
