@@ -260,12 +260,42 @@
         <div class="flex flex-col items-center pointer-events-auto max-w-[50%]">
             <div id="active-game-title" class="bg-white/95 backdrop-blur px-4 py-1.5 rounded-full border border-slate-200 text-xs md:text-sm font-bold text-brand-700 shadow-sm text-center">اسم اللعبة</div>
         </div>
-        <button onclick="app.showScreen('screen-dashboard')" class="w-8 h-8 rounded-full bg-white/95 backdrop-blur border border-slate-200 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 pointer-events-auto transition shadow-sm">
+        <button onclick="app.stopCurrentGame()" class="w-8 h-8 rounded-full bg-white/95 backdrop-blur border border-slate-200 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 pointer-events-auto transition shadow-sm">
             <i class="fa-solid fa-xmark"></i>
         </button>
     </div>
 
     <!-- ==================== GAMES SCREENS ==================== -->
+    
+    <!-- 1. الشاشة الترحيبية ومحرك الألعاب المخصصة الجديد (الذي يأتي من لوحة المطورين) -->
+    <div id="screen-game-custom" class="screen relative z-20 flex-col items-center justify-center bg-slate-50 pt-16">
+        
+        <!-- واجهة البداية والقوانين (Intro Screen) -->
+        <div id="custom-intro-overlay" class="absolute inset-0 bg-slate-900/80 backdrop-blur-md z-30 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center transform transition-transform border border-slate-100">
+                <div id="custom-game-icon" class="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full mx-auto flex items-center justify-center text-4xl mb-4 shadow-sm border border-indigo-100"><i class="fa-solid fa-gamepad"></i></div>
+                <h2 id="custom-game-intro" class="text-2xl font-black text-slate-800 mb-2">مستعد للتحدي؟</h2>
+                <div id="custom-game-rules" class="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6 text-right space-y-2 max-h-40 overflow-y-auto custom-scrollbar leading-relaxed">
+                    <!-- سيتم طباعة القوانين هنا كقائمة -->
+                </div>
+                <button onclick="customGame.startGameplay()" id="custom-game-btn" class="w-full py-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-lg shadow-indigo-500/30 transition flex items-center justify-center gap-2">
+                    ابدأ اللعب الآن <i class="fa-solid fa-play text-xs mt-0.5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- مساحة لعب المحتوى المخصص (Iframe لعزل كود الجافاسكربت) -->
+        <iframe id="custom-game-area" class="w-full h-full flex-1 border-none bg-transparent" sandbox="allow-scripts allow-same-origin"></iframe>
+        
+        <!-- شريط النقاط السفلي -->
+        <div id="custom-score-bar" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-2 rounded-full border border-slate-200 shadow-sm pointer-events-none z-10 flex items-center gap-2 whitespace-nowrap hidden">
+            <i class="fa-solid fa-star text-indigo-500"></i>
+            <span class="text-xs text-slate-500 font-bold">النقاط:</span>
+            <span id="custom-score" class="text-sm font-black text-slate-800">0</span>
+        </div>
+    </div>
+
+
     <div id="screen-game-reaction" class="screen relative z-20 bg-slate-900"><div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(white 1px, transparent 1px); background-size: 40px 40px;"></div><div id="reaction-area" class="flex-1 w-full h-full relative cursor-crosshair overflow-hidden"></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none flex items-center gap-2 z-30 whitespace-nowrap"><i class="fa-solid fa-bolt text-amber-500"></i><span class="text-xs text-slate-600 font-bold">الطاقة:</span><span id="reaction-score" class="text-sm font-black text-slate-800">0</span></div></div>
     <div id="screen-game-memory" class="screen relative z-20 flex-col items-center justify-center bg-slate-50 px-4"><div class="text-center mb-5 relative z-30 bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-200 w-full max-w-xs"><div class="text-slate-400 text-[10px] font-bold mb-1 uppercase tracking-widest"><i class="fa-solid fa-lock"></i> شفرة الخزنة</div><p id="memory-msg" class="text-xl font-black tracking-[0.4em] text-slate-700 h-8">***</p></div><div class="grid grid-cols-3 gap-2 md:gap-3 relative z-30 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm w-full max-w-xs aspect-square" id="memory-keypad"></div></div>
     <div id="screen-game-flex" class="screen relative z-20 flex-col items-center justify-between pb-8 pt-20 bg-slate-50"><div class="text-center w-full px-4 relative z-30"><div id="flex-rule-box" class="bg-white border border-emerald-300 rounded-full py-2 px-5 inline-block transition-all shadow-sm"><h2 id="flex-rule-text" class="text-sm md:text-base font-bold text-emerald-600"><i class="fa-solid fa-arrow-right-arrow-left"></i> طابق اللون</h2></div></div><div class="flex-1 w-full flex items-center justify-center relative z-20"><div id="flex-item" class="w-24 h-24 rounded-2xl shadow-sm flex items-center justify-center text-4xl transition-transform border-2 border-white"><i class="fa-solid fa-shapes text-white/60"></i></div></div><div class="w-full max-w-lg mx-auto flex justify-between px-4 gap-3 relative z-30"><button onclick="flexGame.handleSort('blue')" class="flex-1 h-24 rounded-2xl border-2 border-blue-400 bg-white flex flex-col items-center justify-center gap-1 hover:bg-blue-50 transition shadow-sm"><i class="fa-solid fa-door-open text-2xl text-blue-500"></i><span class="font-bold text-blue-600 text-xs">بوابة زرقاء</span></button><button onclick="flexGame.handleSort('red')" class="flex-1 h-24 rounded-2xl border-2 border-rose-400 bg-white flex flex-col items-center justify-center gap-1 hover:bg-rose-50 transition shadow-sm"><i class="fa-solid fa-door-open text-2xl text-rose-500"></i><span class="font-bold text-rose-600 text-xs">بوابة حمراء</span></button></div><div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none z-30 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-star text-emerald-500"></i><span class="text-xs text-slate-500 font-bold">النقاط:</span><span id="flex-score" class="text-sm font-black text-slate-800">0</span></div></div>
@@ -344,6 +374,9 @@
         const fApp = initializeApp(firebaseConfig);
         const db = getFirestore(fApp);
 
+        // متغير لتخزين الإعدادات الأصلية للألعاب لتمريرها لمحرك الألعاب المخصصة
+        window.cloudGamesData = {};
+
         window.app = {
             studentDocId: null, studentData: null,
             totalEnergy: 0, level: 1, xpForNextLevel: 500, dailyCharge: 15, globalTimer: null, timeRemaining: 0, pendingEnergy: 0, pendingCharge: 0,
@@ -382,18 +415,14 @@
 
                 try {
                     let snap = null;
-
-                    // 1. البحث برقم الجوال
                     let q = query(collection(db, "students"), where("parentPhone", "==", inputVal));
                     snap = await getDocs(q);
 
-                    // 2. البحث بالاسم الصريح
                     if (snap.empty) {
                         q = query(collection(db, "students"), where("name", "==", inputVal));
                         snap = await getDocs(q);
                     }
 
-                    // 3. البحث باسم المستخدم
                     if (snap.empty) {
                         q = query(collection(db, "students"), where("username", "==", inputVal));
                         snap = await getDocs(q);
@@ -423,7 +452,6 @@
                     }, 800);
 
                 } catch (error) {
-                    console.error("Login Err:", error);
                     alert("خطأ في الاتصال بالخوادم.");
                     btn.innerHTML = originalTxt;
                 }
@@ -448,20 +476,27 @@
                     gamesSnap.forEach(d => {
                         const data = d.data();
                         const key = data.key || d.id;
-                        let defaultAction = 'reactionGame.start()';
-                        if(key.includes('memory')) defaultAction = 'memoryGame.start()';
-                        else if(key.includes('flex')) defaultAction = 'flexGame.start()';
-                        else if(key.includes('stroop')) defaultAction = 'stroopGame.start()';
-                        else if(key.includes('matrix')) defaultAction = 'matrixGame.start()';
-                        else if(key.includes('math')) defaultAction = 'mathGame.start()';
-                        else if(key.includes('visual')) defaultAction = 'visualGame.start()';
-                        else if(key.includes('schulte')) defaultAction = 'schulteGame.start()';
-                        else if(key.includes('pattern')) defaultAction = 'patternGame.start()';
-                        else if(key.includes('emotion')) defaultAction = 'emotionGame.start()';
-                        else if(key.includes('word')) defaultAction = 'wordGame.start()';
-                        else if(key.includes('association')) defaultAction = 'associationGame.start()';
-                        else if(key.includes('video') || (data.media && data.media.includes('youtube'))) defaultAction = 'videoGame.start()';
-                        else if(key.includes('audio') || (data.media && data.media.includes('storage'))) defaultAction = 'audioGame.start()';
+                        
+                        // حفظ إعدادات اللعبة في المتغير العالمي للوصول لها عبر المشغل المخصص
+                        window.cloudGamesData[key] = data;
+
+                        // التوجيه: إذا كانت لعبة أساسية (Hardcoded) نستخدم دالتها، وإلا نرسلها للمشغل المخصص
+                        let defaultAction = `customGame.start('${key}')`; // <--- هذا هو التغيير الجذري!
+                        
+                        if(key === 'reaction') defaultAction = 'reactionGame.start()';
+                        else if(key === 'memory') defaultAction = 'memoryGame.start()';
+                        else if(key === 'flex') defaultAction = 'flexGame.start()';
+                        else if(key === 'stroop') defaultAction = 'stroopGame.start()';
+                        else if(key === 'matrix') defaultAction = 'matrixGame.start()';
+                        else if(key === 'math') defaultAction = 'mathGame.start()';
+                        else if(key === 'visual') defaultAction = 'visualGame.start()';
+                        else if(key === 'schulte') defaultAction = 'schulteGame.start()';
+                        else if(key === 'pattern') defaultAction = 'patternGame.start()';
+                        else if(key === 'emotion') defaultAction = 'emotionGame.start()';
+                        else if(key === 'word') defaultAction = 'wordGame.start()';
+                        else if(key === 'association') defaultAction = 'associationGame.start()';
+                        else if(key === 'video_quiz') defaultAction = 'videoGame.start()';
+                        else if(key === 'audio_call') defaultAction = 'audioGame.start()';
 
                         if(!this.lessonsData[key]) {
                             this.lessonsData[key] = { title: data.title || key, icon: data.icon || 'fa-gamepad', color: data.color || 'brand', action: defaultAction };
@@ -469,6 +504,7 @@
                             this.lessonsData[key].title = data.title || this.lessonsData[key].title;
                             this.lessonsData[key].icon = data.icon || this.lessonsData[key].icon;
                             this.lessonsData[key].color = data.color || this.lessonsData[key].color;
+                            this.lessonsData[key].action = defaultAction;
                         }
                     });
                 } catch(err) { console.error("Error syncing games library:", err); }
@@ -581,7 +617,7 @@
                             cardHTML += `<div class="mt-4 pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-2 animate-fade-in" onclick="event.stopPropagation()">`;
                             if(u.games) {
                                 u.games.forEach((gameObj, index) => {
-                                    const lesson = this.lessonsData[gameObj.key] || { title: gameObj.key, icon: 'fa-gamepad', color: 'brand', action: 'reactionGame.start()' };
+                                    const lesson = this.lessonsData[gameObj.key] || { title: gameObj.key, icon: 'fa-gamepad', color: 'brand', action: `customGame.start('${gameObj.key}')` };
                                     const gLevel = this.gameProgress[gameObj.key] || 1;
                                     const gProgressPercent = Math.min(100, (gLevel / 10) * 100);
                                     
@@ -638,7 +674,7 @@
                 this.currentGameConfig = gameConfig; 
                 this.activeGameKey = gameConfig.key;
                 const lesson = this.lessonsData[gameConfig.key];
-                const actionToRun = lesson ? lesson.action : 'reactionGame.start()';
+                const actionToRun = lesson ? lesson.action : `customGame.start('${gameConfig.key}')`;
                 eval(actionToRun); 
             },
             
@@ -695,7 +731,8 @@
                 const gameHeader = document.getElementById('game-header'); const timerContainer = document.getElementById('timer-container'); const titleEl = document.getElementById('active-game-title');
                 if(screenId.includes('game-')) {
                     gameHeader.classList.remove('hidden'); titleEl.textContent = gameTitle;
-                    if(['screen-game-memory', 'screen-game-matrix', 'screen-game-video', 'screen-game-audio'].includes(screenId)) timerContainer.style.display = 'none'; else timerContainer.style.display = 'flex';
+                    // إخفاء العداد في الألعاب التي لا تعتمد على وقت عالمي أو المخصصة
+                    if(['screen-game-memory', 'screen-game-matrix', 'screen-game-video', 'screen-game-audio', 'screen-game-custom'].includes(screenId)) timerContainer.style.display = 'none'; else timerContainer.style.display = 'flex';
                 } else gameHeader.classList.add('hidden');
             },
             
@@ -716,12 +753,148 @@
                 this.renderUnits(); 
                 this.saveProgressToCloud(); 
                 this.showScreen('screen-dashboard');
+            },
+            stopCurrentGame() {
+                // إيقاف أي لعبة تعمل حالياً
+                if(window.customGame.isActive) window.customGame.stop();
+                if(window.reactionGame.isActive) window.reactionGame.stop();
+                if(window.videoGame.isActive) window.videoGame.stop();
+                if(window.audioGame.isActive) window.audioGame.stop();
+                // أعد الطالب للشاشة الرئيسية
+                this.showScreen('screen-dashboard');
             }
         };
 
+        // ==================== CUSTOM GAME ENGINE (المحرك المخصص) ====================
+        window.customGame = {
+            isActive: false, currentKey: '', score: 0, level: 1, cloudData: null,
+            
+            start(key) {
+                this.currentKey = key;
+                this.cloudData = window.cloudGamesData[key];
+                
+                if(!this.cloudData) {
+                    alert("لم يتم العثور على بيانات هذا المحتوى.");
+                    app.showScreen('screen-dashboard');
+                    return;
+                }
+
+                this.level = app.gameProgress[key] || 1;
+                this.score = 0;
+                
+                // تحديث الواجهة الترحيبية
+                document.getElementById('custom-game-icon').className = `w-20 h-20 bg-${this.cloudData.color || 'indigo'}-50 text-${this.cloudData.color || 'indigo'}-500 rounded-full mx-auto flex items-center justify-center text-4xl mb-4 shadow-sm border border-${this.cloudData.color || 'indigo'}-100`;
+                document.getElementById('custom-game-icon').innerHTML = `<i class="fa-solid ${this.cloudData.icon || 'fa-gamepad'}"></i>`;
+                document.getElementById('custom-game-intro').textContent = this.cloudData.intro || this.cloudData.title || "مستعد للتحدي؟";
+                document.getElementById('custom-game-btn').innerHTML = `${this.cloudData.btnText || 'ابدأ اللعب الآن'} <i class="fa-solid fa-play text-xs mt-0.5"></i>`;
+                document.getElementById('custom-game-btn').className = `w-full py-4 rounded-xl bg-${this.cloudData.color || 'indigo'}-600 hover:bg-${this.cloudData.color || 'indigo'}-700 text-white font-black text-sm shadow-lg transition flex items-center justify-center gap-2`;
+                
+                // معالجة القوانين لتحويل الأسطر إلى نقاط
+                const rulesEl = document.getElementById('custom-game-rules');
+                if(this.cloudData.rules) {
+                    const rulesArr = this.cloudData.rules.split('\n').filter(r => r.trim() !== '');
+                    rulesEl.innerHTML = rulesArr.map(r => `<p class="flex items-start gap-2 text-[11px]"><i class="fa-solid fa-circle-check text-${this.cloudData.color || 'indigo'}-500 mt-1 text-[10px]"></i> <span>${r}</span></p>`).join('');
+                } else {
+                    rulesEl.innerHTML = '<p class="text-center text-xs">اتبع تعليمات المعلم.</p>';
+                }
+
+                // إظهار الشاشة الترحيبية وإخفاء مساحة اللعب حالياً
+                document.getElementById('custom-intro-overlay').classList.remove('hidden');
+                document.getElementById('custom-score-bar').classList.add('hidden');
+                const iframe = document.getElementById('custom-game-area');
+                iframe.srcdoc = ""; // تنظيف الكود القديم
+                
+                app.showScreen('screen-game-custom', this.cloudData.title);
+            },
+
+            startGameplay() {
+                this.isActive = true;
+                document.getElementById('custom-intro-overlay').classList.add('hidden');
+                document.getElementById('custom-score-bar').classList.remove('hidden');
+                document.getElementById('custom-score').textContent = "0";
+
+                const iframe = document.getElementById('custom-game-area');
+                
+                // بناء هيكل الصفحة الذي سيتم حقنه داخل الـ iframe
+                const htmlContent = `
+                    <!DOCTYPE html>
+                    <html dir="rtl">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <style>
+                            body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background-color: #f8fafc; font-family: sans-serif; display: flex; flex-direction: column; }
+                            #gameArea { flex: 1; width: 100%; height: 100%; position: relative; }
+                        </style>
+                    </head>
+                    <body>
+                        <div id="gameArea"></div>
+                        <script>
+                            // API مصغر للتواصل مع النظام الأم
+                            window.NabihAPI = {
+                                updateScore: function(points) {
+                                    window.parent.postMessage({ type: 'UPDATE_SCORE', score: points }, '*');
+                                },
+                                endGame: function(finalScore) {
+                                    window.parent.postMessage({ type: 'END_GAME', score: finalScore }, '*');
+                                }
+                            };
+
+                            try {
+                                const gameObj = ${this.cloudData.code || "{}"};
+                                if (gameObj && typeof gameObj.start === 'function') {
+                                    gameObj.start();
+                                } else {
+                                    document.getElementById('gameArea').innerHTML = '<h3 style="text-align:center; margin-top:20px; color:#ef4444;">عذراً، محتوى هذه اللعبة غير صالح للتشغيل.</h3>';
+                                }
+                            } catch (err) {
+                                document.getElementById('gameArea').innerHTML = '<h3 style="text-align:center; margin-top:20px; color:#ef4444;">حدث خطأ في تشغيل اللعبة.</h3>';
+                            }
+                        <\/script>
+                    </body>
+                    </html>
+                `;
+
+                iframe.srcdoc = htmlContent;
+
+                // استماع للرسائل القادمة من الـ iframe (لـ تحديث النقاط أو إنهاء اللعبة)
+                window.addEventListener('message', this.handleIframeMessage);
+            },
+
+            handleIframeMessage: (e) => {
+                if(!window.customGame.isActive) return;
+                
+                if(e.data && e.data.type === 'UPDATE_SCORE') {
+                    window.customGame.score = e.data.score;
+                    document.getElementById('custom-score').textContent = window.customGame.score;
+                }
+                
+                if(e.data && e.data.type === 'END_GAME') {
+                    window.customGame.score = e.data.score || window.customGame.score;
+                    window.customGame.end();
+                }
+            },
+
+            stop() { 
+                this.isActive = false; 
+                document.getElementById('custom-game-area').srcdoc = ""; 
+                window.removeEventListener('message', this.handleIframeMessage);
+            },
+
+            end() { 
+                this.stop(); 
+                // حساب المستوى الجديد بناءً على النقاط كمثال (كل 50 نقطة = مستوى جديد)
+                this.level = Math.min(10, Math.floor(this.score / 50) + 1);
+                app.updateGameProgress(this.currentKey, this.level); 
+                app.showRewardScreen(this.score, 10); 
+            }
+        };
+        // ============================================================================
+
+
+        // باقي الألعاب الثابتة (Hardcoded) كما هي ...
         document.getElementById('btn-confirm-open').addEventListener('click', () => app.executeOpenUnit());
 
-        // الألعاب ومحركاتها
         window.reactionGame = {
             score: 0, level: 1, targetTimeout: null, isActive: false,
             start() { 
